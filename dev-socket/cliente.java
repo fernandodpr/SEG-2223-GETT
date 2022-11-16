@@ -14,7 +14,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-public class  sslsocketserver{
+public class  sslsocketClient{
 
     private static String raizAlmacenes = null;
     public static void main(String[] args) throws Exception {
