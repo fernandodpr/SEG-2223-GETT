@@ -20,9 +20,9 @@ public class  sslsocketClient{
     public static void main(String[] args) throws Exception {
 
 
-        private static String raizAlmacenes = "C:/Escuela/SEG/Laboratorio/cliente/";
-        private static String ficheroKeyStore   = raizAlmacenes + "KeyStoreCliente.jce";
-        private static String ficheroTrustStore = raizAlmacenes + "TrustStoreCliente.jce";
+        private static String raizAlmacenes = "/home/fer/SEG-2022-GETT/dev-socket/";
+        private static String ficheroKeyStore   = raizAlmacenes + "keystore.jce";
+        private static String ficheroTrustStore = raizAlmacenes + "keystore.jce";
 
         String host =null;
         int port = null;
