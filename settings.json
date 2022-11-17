@@ -1,0 +1,9 @@
+{
+    "javac-linter.enable": true,
+    "javac-linter.maxNumberOfProblems": 30,
+    "javac-linter.javac": "/usr/lib/jvm/default-java/bin/javac",
+    "javac-linter.classpath": [
+      "/home/fer/SEG-2022-GETT/bin/classes",
+      "/home/fer/"
+    ]
+  }

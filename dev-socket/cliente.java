@@ -14,18 +14,19 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-public class  sslsocketClient{
+public class  cliente{
 
-    private static String raizAlmacenes = null;
+    //private static String raizAlmacenes = null;
+    private static String raizAlmacenes = "/home/fer/SEG-2022-GETT/dev-socket/";
+    private static String ficheroKeyStore   = raizAlmacenes + "keystore.jceks";
+    private static String ficheroTrustStore = raizAlmacenes + "keystore.jceks";
     public static void main(String[] args) throws Exception {
 
 
-        private static String raizAlmacenes = "/home/fer/SEG-2022-GETT/dev-socket/";
-        private static String ficheroKeyStore   = raizAlmacenes + "keystore.jce";
-        private static String ficheroTrustStore = raizAlmacenes + "keystore.jce";
+
 
         String host =null;
-        int port = null;
+        int port = 8085;
         String[] cipherSuites = null;
 
         char[] passwdAlmacen = "123456".toCharArray();
@@ -90,14 +91,14 @@ public class  sslsocketClient{
                     socketout.println(23);
                     socketout.flush();
 
-                    if (out.checkError())
+                    if(socketout.checkError())
                         System.out.println("SSLSocketClient: java.io.PrintWriter error");
                     
                     BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                     String inputLine;
 
-                    while ((inputLine = in.readLine()) != null)
+                    while ((inputLine = socketin.readLine()) != null)
                         System.out.println(inputLine);
 
                     socketin.close();
