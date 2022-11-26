@@ -18,12 +18,9 @@ public class  cliente{
 
     //private static String raizAlmacenes = null;
     private static String raizAlmacenes = "/home/fer/SEG-2022-GETT/dev-socket/";
-    private static String ficheroKeyStore   = raizAlmacenes + "keystore.jceks";
-    private static String ficheroTrustStore = raizAlmacenes + "keystore.jceks";
+    private static String ficheroKeyStore   = raizAlmacenes + "elbueno.jce";
+    private static String ficheroTrustStore = raizAlmacenes + "elbueno.jce";
     public static void main(String[] args) throws Exception {
-
-
-
 
         String host =null;
         int port = 8085;
@@ -51,8 +48,9 @@ public class  cliente{
             try{
                 try{
                     ctx = SSLContext.getInstance("TLS");
-                    kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                    ks  = KeyStore.getInstance(KeyStore.getDefaultType());
+                   
+                    kmf = KeyManagerFactory.getInstance("SunX509");
+                    ks  = KeyStore.getInstance("JCEKS");
                     ks.load(new FileInputStream(ficheroKeyStore), passwdAlmacen);
                     kmf.init(ks,passwdAlmacen);
 
@@ -72,7 +70,7 @@ public class  cliente{
                     throw new IOException(e.getMessage());
                 }
 
-                SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
+                SSLSocket socket = (SSLSocket) factory.createSocket("192.168.0.152", 8090);
                 String[] cipherSuitesHabilitadas = { "TLS_RSA_WITH_AES_128_CBC_SHA" };
 
                 System.out.println(cipherSuitesHabilitadas[0]);
@@ -88,7 +86,8 @@ public class  cliente{
 
                     socket.startHandshake();
                     PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-                    socketout.println(23);
+                    //socketout.println(23);
+                    socketout.write(43);
                     socketout.flush();
 
                     if(socketout.checkError())
