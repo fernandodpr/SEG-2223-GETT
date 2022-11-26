@@ -17,9 +17,11 @@ import javax.net.ssl.TrustManager;
 public class  cliente{
 
     //private static String raizAlmacenes = null;
-    private static String raizAlmacenes = "/home/fer/SEG-2022-GETT/dev-socket/";
+    private static String raizAlmacenes = "/home/pedro-seg/workspace/SEG-2022-GETT/dev-socket/";
     private static String ficheroKeyStore   = raizAlmacenes + "elbueno.jce";
     private static String ficheroTrustStore = raizAlmacenes + "elbueno.jce";
+
+
     public static void main(String[] args) throws Exception {
 
         String host =null;
@@ -27,28 +29,28 @@ public class  cliente{
         String[] cipherSuites = null;
 
         char[] passwdAlmacen = "123456".toCharArray();
-		char[] passwdEntrada = "123456".toCharArray();
+		    char[] passwdEntrada = "123456".toCharArray();
 
         //KEYSTORE
         System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
-		System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
-		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+		    System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
+		    System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 
         //TRUSTSTORE
-		System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
-		System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
-		System.setProperty("javax.net.ssl.trustStorePassword", "123456");
+		    System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
+		    System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
+		    System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 
 
 
         SSLSocketFactory factory = null;
         SSLContext ctx;
-		KeyManagerFactory kmf;
-		KeyStore ks;
+		    KeyManagerFactory kmf;
+		    KeyStore ks;
             try{
                 try{
                     ctx = SSLContext.getInstance("TLS");
-                   
+
                     kmf = KeyManagerFactory.getInstance("SunX509");
                     ks  = KeyStore.getInstance("JCEKS");
                     ks.load(new FileInputStream(ficheroKeyStore), passwdAlmacen);
@@ -70,7 +72,7 @@ public class  cliente{
                     throw new IOException(e.getMessage());
                 }
 
-                SSLSocket socket = (SSLSocket) factory.createSocket("192.168.0.152", 8090);
+                SSLSocket socket = (SSLSocket) factory.createSocket("localhost", 8090);
                 String[] cipherSuitesHabilitadas = { "TLS_RSA_WITH_AES_128_CBC_SHA" };
 
                 System.out.println(cipherSuitesHabilitadas[0]);
@@ -87,12 +89,13 @@ public class  cliente{
                     socket.startHandshake();
                     PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
                     //socketout.println(23);
-                    socketout.write(43);
+                    socketout.write("hola que haces");
                     socketout.flush();
 
+                    System.out.print("brother ya envie un 43\n");
                     if(socketout.checkError())
                         System.out.println("SSLSocketClient: java.io.PrintWriter error");
-                    
+
                     BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                     String inputLine;
@@ -102,7 +105,7 @@ public class  cliente{
 
                     socketin.close();
                     socketout.close();
-            
+
                    socket.close();
             } catch (Exception e) {
 			    e.printStackTrace();
