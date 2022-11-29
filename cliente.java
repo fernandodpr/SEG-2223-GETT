@@ -17,7 +17,7 @@ import javax.net.ssl.TrustManager;
 public class  cliente{
 
     //private static String raizAlmacenes = null;
-    private static String raizAlmacenes = "/home/pedro-seg/workspace/SEG-2022-GETT/dev-socket/";
+    private static String raizAlmacenes = "./";
     private static String ficheroKeyStore   = raizAlmacenes + "elbueno.jce";
     private static String ficheroTrustStore = raizAlmacenes + "elbueno.jce";
 
