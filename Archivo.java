@@ -1,7 +1,14 @@
 import java.io.*;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 
-public class  Archivo implements Serializable {
+import java.net.*;
+import java.security.*;
+import java.security.spec.*;
+import javax.crypto.*;
+import java.lang.*;
+
+public class  Archivo implements Serializable  {
     private String numeroRegistro;
     private String timestamp;
     private byte[] documento;  //esto se guarda cifardo
@@ -60,12 +67,67 @@ public class  Archivo implements Serializable {
 	//Métodos para comprobar firma
     public Archivo(byte[] documento,String nombreDocumento) {
 		this.numeroRegistro= null;
-		this.timestamp=String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());
+		this.timestamp=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());
 		this.documento=documento;
 		this.cifrado=false;
 		this.nombreDocumento=nombreDocumento;
 		this.firma=null;
 		this.firma_registrador=null;
-    }
+	}
+	
+	public void firmar(PrivateKey privateKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+
+		Signature signer = Signature.getInstance(algoritmo);
+		signer.initSign(privateKey);
+
+		byte[] firma = null;
+		int    longbloque;
+    	byte   bloque[]         = new byte[1024];
+    	long   filesize         = 0;
+		signer.update(this.documento);
+		
+		Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + "");
+
+		if(cliente){
+			this.firma=signer.sign();
+			Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + " con un tamaño " +this.firma.length + " por el cliente.");
+
+		}else{
+			this.firma_registrador=signer.sign();
+			Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + " con un tamaño " +this.firma_registrador.length + " por el servidor.");
+
+		}
+	  
+	}
+
+	public boolean verificar(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+		Signature verifier=Signature.getInstance(algoritmo);
+		byte[] publicBytes  = publicKey.getEncoded();
+		EncodedKeySpec keySpec;
+		if (publicKey.getFormat().equals("X.509"))
+			keySpec = new X509EncodedKeySpec (publicBytes);
+		else
+			keySpec = new PKCS8EncodedKeySpec(publicBytes);
+		KeyFactory keyFactory = KeyFactory.getInstance(algoritmo_base);
+		PublicKey  publicKey2 = keyFactory.generatePublic(keySpec);		
+		// Inicializamos el objeto
+		verifier.initVerify(publicKey2);
+		verifier.update(this.documento);
+
+		boolean resultado = false;
+
+		if(cliente){
+			resultado = verifier.verify(this.firma);	
+			Debug.info("Se ha comprobado: "+ this.nombreDocumento + "con resultado: "+ resultado);
+
+		}else{
+			resultado = verifier.verify(this.firma_registrador);
+			Debug.info("Se ha comprobado: "+ this.nombreDocumento + "con resultado: "+ resultado);
+
+		}
+		
+		return resultado;
+	}
+
     
 }
