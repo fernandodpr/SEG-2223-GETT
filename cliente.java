@@ -5,8 +5,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.security.KeyStore;
+
+import java.net.*;
+import java.io.*;
+import java.security.*;
+import java.security.spec.*;
+import javax.crypto.*;
+import java.lang.*;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -82,17 +91,54 @@ public class  cliente{
                 String[] cipherSuitesHabilSocket = socket.getEnabledCipherSuites();
                     for (int i = 0; i < cipherSuitesHabilSocket.length; i++)
                         System.out.println(cipherSuitesHabilSocket[i]);
-                System.out.println("\n*************************************************************");
+                    System.out.println("\n*************************************************************");
                     System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
                     System.out.println("*************************************************************");
 
                     socket.startHandshake();
-                    PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+                     PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+                    // OutputStream outputSocket= socket.getOutputStream();
+                    ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
                     //socketout.println(23);
-                    socketout.write("hola que haces");
-                    socketout.flush();
 
-                    System.out.print("brother ya envie un 43\n");
+                    String inputString = "Soy el documento";
+                    String claveK = "Soy la calve K";
+                    Archivo arqtest = new Archivo(inputString.getBytes(),"Soy el nombre del documento");
+                    
+                    String provider         = "SunJCE";
+                    String algoritmo        =  "MD5withRSA";
+                    String algoritmo_base   =  "RSA";
+                    int    longitud_clave   =  2048;
+                    int    longbloque;
+                    byte   bloque[]         = new byte[1024];
+                    long   filesize         = 0;
+                    // Crea generador de claves
+
+                    KeyPairGenerator keyPairGen;
+                    keyPairGen = KeyPairGenerator.getInstance(algoritmo_base);
+
+                    // Crea generador de claves
+
+                    keyPairGen.initialize(longitud_clave);
+
+                    // Generamos un par de claves (publica y privada)
+                    KeyPair     keypair    = keyPairGen.genKeyPair();
+                    PrivateKey  privateKey = keypair.getPrivate();
+                    PublicKey   publicKey  = keypair.getPublic();
+                    
+                    
+                    
+                    arqtest.firmar(privateKey,provider,algoritmo,algoritmo_base,true);
+                    
+                    Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
+                    
+                    
+                    
+                    outputSocketObject.writeObject(paqtest);
+                    
+                    
+                    outputSocketObject.flush();
+                    
                     if(socketout.checkError())
                         System.out.println("SSLSocketClient: java.io.PrintWriter error");
 
@@ -103,10 +149,9 @@ public class  cliente{
                     while ((inputLine = socketin.readLine()) != null)
                         System.out.println(inputLine);
 
-                    socketin.close();
-                    socketout.close();
-
-                   socket.close();
+                        outputSocketObject.close();
+                        // socketout.close();
+                        // socket.close();
             } catch (Exception e) {
 			    e.printStackTrace();
 		    }
