@@ -4,10 +4,20 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
 
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+
+import java.net.*;
+import java.io.*;
+import java.security.*;
+import java.security.spec.*;
+import javax.crypto.*;
+import java.lang.*;
 import java.security.KeyStore;
 
 import java.net.*;
@@ -72,12 +82,35 @@ public class  server{
         sslServerSocket.setNeedClientAuth(true);
 
         //while(true){
-          socket = sslServerSocket.accept();
-          BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            socket = sslServerSocket.accept();
+            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
+            
+            String provider         = "SunJCE";
+            String algoritmo        =  "MD5withRSA";
+                   String algoritmo_base   =  "RSA";
+                    int    longitud_clave   =  2048;
+                    int    longbloque;
+                    byte   bloque[]         = new byte[1024];
+                    long   filesize         = 0;
+            Paquete test = (Paquete)inputSocketObject.readObject();
+            Debug.taco("Quieres ver mi paquete?");       
+            Debug.info(new String(test.getClaveK(), StandardCharsets.UTF_8));
+            Debug.info(test.getInstruccion());
+            Debug.info(test.getArchivo().getNumeroRegistro());
+            Debug.info(test.getArchivo().getTimestamp());
+            Debug.info(new String(test.getArchivo().getDocumento(), StandardCharsets.UTF_8));
+            Debug.info(test.getArchivo().isCifrado());
+            Debug.info(test.getArchivo().getNombreDocumento());
+            Debug.taco("Puta tu madre");
+            Debug.info("Voy a verificar la firma.");
+            PublicKey publicKey = 
+                    KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(test.getClaveK()));
+            Debug.info("El resultado de la verificación es:  "+test.getArchivo().verificar(publicKey, provider, algoritmo, algoritmo_base,true));
 
-          String inputLine;
+            String inputLine;
           
-          inputLine = socketin.readLine();
+        inputLine = socketin.readLine();
           //while (() != null){
             System.out.println(inputLine);
             System.out.println("linea");
