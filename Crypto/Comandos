@@ -23,6 +23,9 @@ Step 12: OpenSSL Create Certificate Chain (Certificate Bundle)
 To openssl create certificate chain (certificate bundle), concatenate the intermediate and root certificates together.
 
 In the below example I have combined my Root and Intermediate CA certificates to openssl create certificate chain in Linux. We will use this file later to verify certificates signed by the intermediate CA.
+cat intermediate/certs/intermediate.cacert.pem certs/cacert.pem > intermediate/certs/ca-chain-bundle.cert.pem
+
+
 
 Crear Nuevos certificados
 openssl req -new -out Cliente-Encrypt.csr     -keyout Cliente-Encrypt.key
