@@ -39,13 +39,8 @@ public class  cliente{
     public static void main(String[] args) throws Exception {
         
                 SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,"123456","localhost");
-
-                
                 PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-                // OutputStream outputSocket= socket.getOutputStream();
                 ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-                //socketout.println(23);
-
                     String inputString = "Soy el documento";
                     String claveK = "Soy la calve K";
                     Archivo arqtest = new Archivo(inputString.getBytes(),"Soy el nombre del documento");
@@ -72,7 +67,6 @@ public class  cliente{
 
                     outputSocketObject.writeObject(paqtest);
 
-
                     outputSocketObject.flush();
 
                     if(socketout.checkError())
@@ -92,9 +86,9 @@ public class  cliente{
 
     }
 
-    private SSLSocket handshakeTLS(String host, int port;String keyStorePath, String trustStorePath, String pswd, String IpOCSPResponder) throws Exception{
+    private static SSLSocket handshakeTLS(String host, int port,String keyStorePath, String trustStorePath, String pswd, String IpOCSPResponder) throws Exception{
            
-        SSLSocket socket 
+            SSLSocket socket; 
             //KEYSTORE
                 System.setProperty("javax.net.ssl.keyStore", keyStorePath);
                 System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
@@ -116,13 +110,13 @@ public class  cliente{
             //Inicializo el KeyStore
                 kmf = KeyManagerFactory.getInstance("SunX509");
                 ksKeyStore  = KeyStore.getInstance("JCEKS");
-                ksKeyStore.load(new FileInputStream(keyStorePath), passwdAlmacen);
-                kmf.init(ksKeyStore,passwdAlmacen);
+                ksKeyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
+                kmf.init(ksKeyStore,pswd.toCharArray());
 
             //Inicializo el trust manager
                 tmf = TrustManagerFactory.getInstance("SunX509");
                 ksTrustStore = KeyStore.getInstance("JCEKS");
-                ksTrustStore.load(new FileInputStream(trustStorePath), passwdAlmacen);
+                ksTrustStore.load(new FileInputStream(trustStorePath), pswd.toCharArray());
                 tmf.init(ksTrustStore);
 
             //Configuración del contexto SSL
@@ -169,5 +163,26 @@ public class  cliente{
                     System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
                 }
         return socket;
+    }
+    private static boolean registrarDocumento(SSLSocket socket,String keyStorePath, String trustStorePath, String pswd){
+        return true;
+    }
+    private static String solicitarPassword(){
+        String passwd1;
+        String passwd2;
+        try {
+            do{
+                System.out.println("Introduzca la clave del keystore:");
+                BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
+                passwd1 = consola.readLine();
+                System.out.println("Confirme la clave del keystore:");
+                passwd2 = consola.readLine();
+            }while(!passwd1.equals(passwd2));
+            return passwd1;
+        } catch (Exception e) {
+
+        }
+        return null;
+        
     }
 }
