@@ -84,14 +84,17 @@ public class  cliente{
 
                     System.out.println("******** CypherSuites Disponibles **********");
                     cipherSuites = factory.getSupportedCipherSuites();
-                        for (int i = 0; i < cipherSuites.length; i++)
+                        for (int i = 0; i < cipherSuites.length; i++){
+                          if(cipherSuites[i].contains("RSA")){
                             System.out.println(i+"    "+cipherSuites[i]);
+                          }
+                        }
                         System.out.println("############Selecciona un cipher suite: ############");
                         String ciphnumstring = consola.readLine();
                         int ciphnum = Integer.parseInt(ciphnumstring);
                         cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
                         System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
-                        
+
 
 
 
@@ -153,7 +156,7 @@ public class  cliente{
                     BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                     String inputLine;
-*/
+
                    // while ((inputLine = socketin.readLine()) != null)
                      //   System.out.println(inputLine);
 
