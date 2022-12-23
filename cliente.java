@@ -46,7 +46,7 @@ public class  cliente{
 		char[] passwdEntrada = "123456".toCharArray();
 
         //KEYSTORE
-        System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+            System.setProperty("javax.net.ssl.keyStore", keyStorePath);
 		    System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
 		    System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 
@@ -59,7 +59,7 @@ public class  cliente{
         String[] cipherSuitesHabilitadas={"A"};
         SSLSocketFactory factory = null;
         SSLContext sslContext;
-		    KeyManagerFactory kmf;
+		KeyManagerFactory kmf;
         KeyStore ksKeyStore;
         TrustManagerFactory tmf;
         KeyStore ksTrustStore;
@@ -178,8 +178,84 @@ public class  cliente{
 		    }
 
 
+    }
 
+    private SSLSocket handshakeTLS(String keyStorePath, String trustStorePath, String pswd, String IpOCSPResponder) throws Exception{
+           
+        SSLSocket socket 
+            //KEYSTORE
+                System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+                System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
+                System.setProperty("javax.net.ssl.keyStorePassword", pswd);
 
+            //TRUSTSTORE
+                System.setProperty("javax.net.ssl.trustStore", trustStorePath);
+                System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
+                System.setProperty("javax.net.ssl.trustStorePassword", pswd);
+            //Variables
+                String[] cipherSuitesHabilitadas={"A"};
+                SSLSocketFactory factory = null;
+                SSLContext sslContext;
+                KeyManagerFactory kmf;
+                KeyStore ksKeyStore;
+                TrustManagerFactory tmf;
+                KeyStore ksTrustStore;
+                BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
+            //Inicializo el KeyStore
+                kmf = KeyManagerFactory.getInstance("SunX509");
+                ksKeyStore  = KeyStore.getInstance("JCEKS");
+                ksKeyStore.load(new FileInputStream(keyStorePath), passwdAlmacen);
+                kmf.init(ksKeyStore,passwdAlmacen);
 
+            //Inicializo el trust manager
+                tmf = TrustManagerFactory.getInstance("SunX509");
+                ksTrustStore = KeyStore.getInstance("JCEKS");
+                ksTrustStore.load(new FileInputStream(trustStorePath), passwdAlmacen);
+                tmf.init(ksTrustStore);
+
+            //Configuración del contexto SSL
+                sslContext = SSLContext.getInstance("TLSv1.3");
+                sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
+                factory = sslContext.getSocketFactory();
+
+            // Estaplecemos los Cipher Suite
+                System.out.println("******** CypherSuites Disponibles **********");
+                    cipherSuites = factory.getSupportedCipherSuites();
+                        for (int i = 0; i < cipherSuites.length; i++){
+                        
+                        if(cipherSuites[i].contains("AES") && !cipherSuites[i].contains("WITH_AES")){
+                            System.out.println(i+"    "+cipherSuites[i]);
+                        }
+                        }
+                        System.out.println("############Selecciona un cipher suite: ############");
+                        String ciphnumstring = consola.readLine();
+                        int ciphnum = Integer.parseInt(ciphnumstring);
+                        cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
+                        System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
+
+            //Creación del socket
+                socket = (SSLSocket) factory.createSocket("localhost", 8090);
+                socket.setEnabledCipherSuites(cipherSuitesHabilitadas);
+                socket.setEnabledProtocols(protocols);
+            //Empezamos el Handshake
+                System.out.println("\n*************************************************************");
+                System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
+                System.out.println("*************************************************************");
+                socket.startHandshake();
+            //Información de la sesión TLS
+                SSLSession session = socket.getSession();
+                java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
+                java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+
+                for(int i=0;i<servercerts.length;i++){
+                    X509Certificate localcert = (X509Certificate)localcerts[i];
+                    System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
+                }
+                
+                for(int i=0;i<servercerts.length;i++){
+                    X509Certificate peercert = (X509Certificate)servercerts[i];      
+                    System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
+                }
+        return socket;
     }
 }
