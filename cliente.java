@@ -143,19 +143,17 @@ public class  cliente{
 
             // Estaplecemos los Cipher Suite
                 System.out.println("******** CypherSuites Disponibles **********");
-                    cipherSuites = factory.getSupportedCipherSuites();
-                        for (int i = 0; i < cipherSuites.length; i++){
-                        
-                        if(cipherSuites[i].contains("AES") && !cipherSuites[i].contains("WITH_AES")){
-                            System.out.println(i+"    "+cipherSuites[i]);
-                        }
-                        }
-                        System.out.println("############Selecciona un cipher suite: ############");
-                      
-                        String ciphnumstring = consola.readLine();
-                        int ciphnum = Integer.parseInt(ciphnumstring);
-                        cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
-                        System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
+                cipherSuites = factory.getSupportedCipherSuites();
+                for (int i = 0; i < cipherSuites.length; i++){
+                    if(cipherSuites[i].contains("AES") && !cipherSuites[i].contains("WITH_AES")){
+                        System.out.println(i+"    "+cipherSuites[i]);
+                    }
+                }
+                System.out.println("############Selecciona un cipher suite: ############");
+                String ciphnumstring = consola.readLine();
+                int ciphnum = Integer.parseInt(ciphnumstring);
+                cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
+                System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
 
             //Creación del socket
                 socket = (SSLSocket) factory.createSocket("localhost", 8090);
@@ -170,12 +168,10 @@ public class  cliente{
                 SSLSession session = socket.getSession();
                 java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
                 java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
-
                 for(int i=0;i<servercerts.length;i++){
                     X509Certificate localcert = (X509Certificate)localcerts[i];
                     System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
                 }
-                
                 for(int i=0;i<servercerts.length;i++){
                     X509Certificate peercert = (X509Certificate)servercerts[i];      
                     System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
@@ -184,6 +180,63 @@ public class  cliente{
     }
     private static boolean registrarDocumento(SSLSocket socket,String keyStorePath, String trustStorePath, String pswd){
         return true;
+    }
+    
+
+
+    public static void Registrar_fichero(){
+        System.out.println("Hemos enviado un fichero");
+        return;
+    }
+    public static void menu_registro(){
+        try {
+            //Solicitud de los datos
+            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
+            String psswd = solicitarPassword();
+            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
+
+            //Creación de socket 
+            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
+            PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
+            Paquete paqtest = new Paquete(null,"Instruccion",null);
+            outputSocketObject.writeObject(paqtest);
+            outputSocketObject.flush();
+
+            if(socketout.checkError())
+                System.out.println("SSLSocketClient: java.io.PrintWriter error");
+            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            String inputLine;
+
+            while ((inputLine = socketin.readLine()) != null) System.out.println(inputLine);
+            outputSocketObject.close();
+            socketout.close();
+            socket.close();
+        } catch (Exception e) {
+            
+        }
+        
+        return;
+    }
+
+    private static String solicitarArchivo(String tipo,String def){
+        String archivo=null;
+        try {
+            System.out.println("Introduzca el path de "+tipo+" ["+def+"]:");
+            BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
+            archivo = consola.readLine();
+        } catch (Exception e) {
+
+        }
+        if (archivo.length()<4){
+            return def;
+        }else{
+            return archivo;
+        }
+        
+        
     }
     private static String solicitarPassword(){
         String passwd1;
@@ -203,7 +256,6 @@ public class  cliente{
         return null;
         
     }
-
     public static String menu(){
         String selection = null;
         BufferedReader info = new BufferedReader(new InputStreamReader(System.in));
@@ -221,57 +273,5 @@ public class  cliente{
             e.printStackTrace();
         }
         return selection;
-    }
-    public static void Registrar_fichero(){
-        System.out.println("Hemos enviao un fichero");
-        return;
-    }
-    public static void menu_registro(){
-        try {
-            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
-            String psswd = solicitarPassword();
-            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
-            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
-            PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-
-            Paquete paqtest = new Paquete(null,"Instruccion",null);
-
-            outputSocketObject.writeObject(paqtest);
-
-            outputSocketObject.flush();
-
-            if(socketout.checkError())
-                System.out.println("SSLSocketClient: java.io.PrintWriter error");
-
-            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            String inputLine;
-
-            while ((inputLine = socketin.readLine()) != null) System.out.println(inputLine);
-            outputSocketObject.close();
-            socketout.close();
-            socket.close();
-        } catch (Exception e) {
-            //TODO: handle exception
-        }
-        
-        return;
-    }
-
-    private static String solicitarArchivo(String tipo,String def){
-        String archivo=null;
-        try {
-            System.out.println("Introduzca el path de "+tipo+" ["+def+"]:");
-            BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
-            archivo = consola.readLine();
-        } catch (Exception e) {
-
-        }
-        if (archivo=="A"){
-            
-        }
-        return archivo;
-        
     }
 }
