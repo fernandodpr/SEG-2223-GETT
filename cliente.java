@@ -19,10 +19,12 @@ import java.lang.*;
 import java.security.KeyStore;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import java.security.cert.X509Certificate;
 
 public class  cliente{
 
@@ -31,13 +33,15 @@ public class  cliente{
     private static String keyStorePath   = raizAlmacenes + "Cliente/KeyStoreCliente";
     private static String trustStorePath = raizAlmacenes + "Cliente/TrustStoreCliente";
 
+    private static final String[] protocols = new String[]{"TLSv1.3"};
+
 
     public static void main(String[] args) throws Exception {
 
         String host =null;
         int port = 8085;
         String[] cipherSuites = null;
-
+        
         char[] passwdAlmacen = "123456".toCharArray();
 		char[] passwdEntrada = "123456".toCharArray();
 
@@ -75,9 +79,8 @@ public class  cliente{
                     tmf.init(ksTrustStore);
 
                     //Configuración del contexto SSL
-                    sslContext = SSLContext.getInstance("TLS");
+                    sslContext = SSLContext.getInstance("TLSv1.3");
                     sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
-
 
                     factory = sslContext.getSocketFactory();
 
@@ -85,7 +88,8 @@ public class  cliente{
                     System.out.println("******** CypherSuites Disponibles **********");
                     cipherSuites = factory.getSupportedCipherSuites();
                         for (int i = 0; i < cipherSuites.length; i++){
-                          if(cipherSuites[i].contains("RSA")){
+                          
+                          if(cipherSuites[i].contains("AES") && !cipherSuites[i].contains("WITH_AES")){
                             System.out.println(i+"    "+cipherSuites[i]);
                           }
                         }
@@ -94,24 +98,31 @@ public class  cliente{
                         int ciphnum = Integer.parseInt(ciphnumstring);
                         cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
                         System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
-
-
-
-
                 } catch (Exception e){
                     e.printStackTrace();
                 }
 
                 SSLSocket socket = (SSLSocket) factory.createSocket("localhost", 8090);
                 socket.setEnabledCipherSuites(cipherSuitesHabilitadas);
+                socket.setEnabledProtocols(protocols);
                 System.out.println("\n*************************************************************");
                 System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
                 System.out.println("*************************************************************");
                 socket.startHandshake();
 
+                SSLSession session = socket.getSession();
+                java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
+                java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
 
-
-
+                for(int i=0;i<servercerts.length;i++){
+                    X509Certificate localcert = (X509Certificate)localcerts[i];
+                    System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
+                }
+                
+                for(int i=0;i<servercerts.length;i++){
+                    X509Certificate peercert = (X509Certificate)servercerts[i];      
+                    System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
+                }
 
 
                 PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));

@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-
+import javax.net.ssl.HandshakeCompletedEvent;
 import java.net.*;
 import java.io.*;
 import java.security.*;
@@ -108,7 +108,7 @@ public class  server{
 
         while(true){
 
-            System.out.println("******** getSupportedCipherSuites **********");
+ /*           System.out.println("******** getSupportedCipherSuites **********");
             String[] supportedCipherSuites = sslServerSocket.getSupportedCipherSuites();
                 for (int i = 0; i < supportedCipherSuites.length; i++)
                     System.out.println(i+"    "+supportedCipherSuites[i]);
@@ -128,7 +128,7 @@ public class  server{
             System.out.println("******** getEnabledProtocols **********");
             String[] enabledProtocols = sslServerSocket.getEnabledProtocols();
             for (int i = 0; i < enabledProtocols.length; i++)
-                System.out.println(i+"    "+enabledProtocols[i]);        
+                System.out.println(i+"    "+enabledProtocols[i]);  */      
             
 
             
@@ -145,10 +145,7 @@ public class  server{
             String inputLine;
 
         inputLine = socketin.readLine();
-
-
-
-        }
+}
 
 
 
