@@ -89,8 +89,6 @@ public class  server{
                 sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
                 
-                
-                
                 serverSocketFactory = sslContext.getServerSocketFactory();          
             } catch (Exception e) {
                 e.printStackTrace();
