@@ -42,7 +42,7 @@ public class  cliente{
 		char[] passwdEntrada = "123456".toCharArray();
 
         //KEYSTORE
-            System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+        System.setProperty("javax.net.ssl.keyStore", keyStorePath);
 		    System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
 		    System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 
@@ -55,7 +55,7 @@ public class  cliente{
         String[] cipherSuitesHabilitadas={"A"};
         SSLSocketFactory factory = null;
         SSLContext sslContext;
-		KeyManagerFactory kmf;
+		    KeyManagerFactory kmf;
         KeyStore ksKeyStore;
         TrustManagerFactory tmf;
         KeyStore ksTrustStore;
@@ -77,8 +77,8 @@ public class  cliente{
                     //Configuración del contexto SSL
                     sslContext = SSLContext.getInstance("TLS");
                     sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
-                    
-                    
+
+
                     factory = sslContext.getSocketFactory();
 
 
@@ -98,28 +98,19 @@ public class  cliente{
                 } catch (Exception e){
                     e.printStackTrace();
                 }
-                
+
                 SSLSocket socket = (SSLSocket) factory.createSocket("localhost", 8090);
                 socket.setEnabledCipherSuites(cipherSuitesHabilitadas);
                 System.out.println("\n*************************************************************");
                 System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
                 System.out.println("*************************************************************");
-                
-                
-                
-                
-                
-                
-                
-                
-                
                 socket.startHandshake();
 
 
 
 
 
-                
+
                 PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
                 // OutputStream outputSocket= socket.getOutputStream();
                 ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
@@ -128,41 +119,34 @@ public class  cliente{
                     String inputString = "Soy el documento";
                     String claveK = "Soy la calve K";
                     Archivo arqtest = new Archivo(inputString.getBytes(),"Soy el nombre del documento");
-                    
-                    String provider         = "SunJCE";
-                    String algoritmo        =  "MD5withRSA";
-                    String algoritmo_base   =  "RSA";
-                    int    longitud_clave   =  2048;
-                    int    longbloque;
-                    byte   bloque[]         = new byte[1024];
-                    long   filesize         = 0;
-                    // Crea generador de claves
 
+
+                    // Crea generador de claves
                     KeyPairGenerator keyPairGen;
-                    keyPairGen = KeyPairGenerator.getInstance(algoritmo_base);
+                    keyPairGen = KeyPairGenerator.getInstance("RSA");
 
                     // Crea generador de claves
 
-                    keyPairGen.initialize(longitud_clave);
+                    keyPairGen.initialize(2048);
 
                     // Generamos un par de claves (publica y privada)
                     KeyPair     keypair    = keyPairGen.genKeyPair();
                     PrivateKey  privateKey = keypair.getPrivate();
                     PublicKey   publicKey  = keypair.getPublic();
-                    
-                    /*
-                    
-                    arqtest.firmar(privateKey,provider,algoritmo,algoritmo_base,true);
-                    
-                  //  Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
-                    
-                    
-                    
-                   // outputSocketObject.writeObject(paqtest);
-                    
-                    
+
+
+                    //se pueden eliminar parametros y ese Provider (SunJCE) dudo que esté bn
+                    arqtest.firmar(privateKey,"SunJCE","SHA512withRSA","RSA",true);
+
+                    Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
+
+
+
+                    outputSocketObject.writeObject(paqtest);
+
+
                     outputSocketObject.flush();
-                    
+
                     if(socketout.checkError())
                         System.out.println("SSLSocketClient: java.io.PrintWriter error");
 
