@@ -153,13 +153,12 @@ public class  cliente{
                     BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                     String inputLine;
-*/
-                   // while ((inputLine = socketin.readLine()) != null)
-                     //   System.out.println(inputLine);
 
-                       // outputSocketObject.close();
-                        // socketout.close();
-                        // socket.close();
+                    while ((inputLine = socketin.readLine()) != null)
+                        System.out.println(inputLine);
+                        outputSocketObject.close();
+                        socketout.close();
+                        socket.close();
             } catch (Exception e) {
 			    e.printStackTrace();
 		    }

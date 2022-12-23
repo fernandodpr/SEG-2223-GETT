@@ -137,30 +137,17 @@ public class  server{
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
 
-            
             Paquete test = (Paquete)inputSocketObject.readObject();
             
             
-            Debug.info(test.getInstruccion());
-            Debug.info(test.getArchivo().getNumeroRegistro());
-            Debug.info(test.getArchivo().getTimestamp());
-            Debug.info(new String(test.getArchivo().getDocumento(), StandardCharsets.UTF_8));
-            Debug.info(test.getArchivo().isCifrado());
-            Debug.info(test.getArchivo().getNombreDocumento());
-            Debug.info("Voy a verificar la firma.");
-            /*PublicKey publicKey =
-                    KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(test.getClaveK()));
-            Debug.info("El resultado de la verificación es:  "+test.getArchivo().verificar(publicKey, "SunJCE", "SHA512withRSA", "RSA",true));
+            Debug.info("Esta es la instruccion recibida:  "+ test.getInstruccion());
 
             String inputLine;
 
         inputLine = socketin.readLine();
-          //while (() != null){
-            System.out.println(inputLine);
-            System.out.println("linea");
-          //}
 
-*/
+
+
         }
 
 
