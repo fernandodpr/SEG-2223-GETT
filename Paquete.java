@@ -5,9 +5,6 @@ public class  Paquete implements Serializable {
     private Archivo archivo; //con el documento cifrado por clave K
     private String instruccion;
 
-
-
-    private byte[] claveK;
 	public Archivo getArchivo() {
 		return this.archivo;
 	}
@@ -27,9 +24,7 @@ public class  Paquete implements Serializable {
 		return this.claveK;
 	}
 
-	public void setClaveK(byte[] claveK) {
-		this.claveK = claveK;
-	}
+
  //Cifrado por la calve pública del cliente o servidor
     
 
