@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -17,18 +16,20 @@ import java.security.spec.*;
 import javax.crypto.*;
 import java.lang.*;
 
+import java.security.KeyStore;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 public class  cliente{
 
     //private static String raizAlmacenes = null;
-    private static String raizAlmacenes = "./";
-    private static String ficheroKeyStore   = raizAlmacenes + "elbueno.jce";
-    private static String ficheroTrustStore = raizAlmacenes + "elbueno.jce";
+    private static String raizAlmacenes = "./Crypto/";
+    private static String keyStorePath   = raizAlmacenes + "Cliente/KeyStoreCliente";
+    private static String trustStorePath = raizAlmacenes + "Cliente/TrustStoreCliente";
 
 
     public static void main(String[] args) throws Exception {
@@ -41,65 +42,79 @@ public class  cliente{
 		    char[] passwdEntrada = "123456".toCharArray();
 
         //KEYSTORE
-        System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
+            System.setProperty("javax.net.ssl.keyStore", keyStorePath);
 		    System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
 		    System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 
         //TRUSTSTORE
-		    System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
+		    System.setProperty("javax.net.ssl.trustStore", trustStorePath);
 		    System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
 		    System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 
 
-
+        String[] cipherSuitesHabilitadas={"A"};
         SSLSocketFactory factory = null;
-        SSLContext ctx;
-		    KeyManagerFactory kmf;
-		    KeyStore ks;
+        SSLContext sslContext;
+		KeyManagerFactory kmf;
+        KeyStore ksKeyStore;
+        TrustManagerFactory tmf;
+        KeyStore ksTrustStore;
             try{
                 try{
-                    ctx = SSLContext.getInstance("TLS");
-
+                    BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
+                    //Inicializo el KeyStore
                     kmf = KeyManagerFactory.getInstance("SunX509");
-                    ks  = KeyStore.getInstance("JCEKS");
-                    ks.load(new FileInputStream(ficheroKeyStore), passwdAlmacen);
-                    kmf.init(ks,passwdAlmacen);
+                    ksKeyStore  = KeyStore.getInstance("JCEKS");
+                    ksKeyStore.load(new FileInputStream(keyStorePath), passwdAlmacen);
+                    kmf.init(ksKeyStore,passwdAlmacen);
 
-                    ctx.init(kmf.getKeyManagers(),null,null);
-                    factory = ctx.getSocketFactory();
+                    //Inicializo el trust manager
+                    tmf = TrustManagerFactory.getInstance("SunX509");
+                    ksTrustStore = KeyStore.getInstance("JCEKS");
+                    ksTrustStore.load(new FileInputStream(trustStorePath), passwdAlmacen);
+                    tmf.init(ksTrustStore);
+
+                    //Configuración del contexto SSL
+                    sslContext = SSLContext.getInstance("TLS");
+                    sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
+                    
+                    
+                    factory = sslContext.getSocketFactory();
+
 
                     System.out.println("******** CypherSuites Disponibles **********");
                     cipherSuites = factory.getSupportedCipherSuites();
                         for (int i = 0; i < cipherSuites.length; i++)
-                            System.out.println(cipherSuites[i]);
+                            System.out.println(i+"    "+cipherSuites[i]);
+                        System.out.println("############Selecciona un cipher suite: ############");
+                        String ciphnumstring = consola.readLine();
+                        int ciphnum = Integer.parseInt(ciphnumstring);
+                        System.out.println("Has seleccionado:   "+cipherSuites[ciphnum]);
+                        cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
 
-                    System.out.println("******* CypherSuites Habilitadas por defecto **********");
-                        String[] cipherSuitesDef = factory.getDefaultCipherSuites();
-                        for (int i = 0; i < cipherSuitesDef.length; i++)
-                            System.out.println(cipherSuitesDef[i]);
+
+
                 } catch (Exception e){
-                    throw new IOException(e.getMessage());
+                    e.printStackTrace();
                 }
-
+                
                 SSLSocket socket = (SSLSocket) factory.createSocket("localhost", 8090);
-                String[] cipherSuitesHabilitadas = { "TLS_RSA_WITH_AES_128_CBC_SHA" };
-
-                System.out.println(cipherSuitesHabilitadas[0]);
                 socket.setEnabledCipherSuites(cipherSuitesHabilitadas);
+                System.out.println("\n*************************************************************");
+                System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
+                System.out.println("*************************************************************");
+                
+                socket.startHandshake();
 
-                System.out.println("****** CypherSuites Habilitadas  **********");
-                String[] cipherSuitesHabilSocket = socket.getEnabledCipherSuites();
-                    for (int i = 0; i < cipherSuitesHabilSocket.length; i++)
-                        System.out.println(cipherSuitesHabilSocket[i]);
-                    System.out.println("\n*************************************************************");
-                    System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
-                    System.out.println("*************************************************************");
 
-                    socket.startHandshake();
-                     PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-                    // OutputStream outputSocket= socket.getOutputStream();
-                    ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-                    //socketout.println(23);
+
+
+
+                
+                PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+                // OutputStream outputSocket= socket.getOutputStream();
+                ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+                //socketout.println(23);
 
                     String inputString = "Soy el documento";
                     String claveK = "Soy la calve K";
@@ -151,7 +166,7 @@ public class  cliente{
 
                         outputSocketObject.close();
                         // socketout.close();
-                        // socket.close();
+                        // socket.close();*/
             } catch (Exception e) {
 			    e.printStackTrace();
 		    }
