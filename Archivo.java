@@ -128,6 +128,6 @@ public class  Archivo implements Serializable  {
 		
 		return resultado;
 	}
-
+	
     
 }

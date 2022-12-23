@@ -20,9 +20,7 @@ public class  Paquete implements Serializable {
 	public void setInstruccion(String instruccion) {
 		this.instruccion = instruccion;
 	}
-	public byte[] getClaveK() {
-		return this.claveK;
-	}
+
 
 
  //Cifrado por la calve pública del cliente o servidor
@@ -31,6 +29,5 @@ public class  Paquete implements Serializable {
     public Paquete(Archivo archivo, String instruccion, byte[] claveK) {
         this.archivo=archivo;
         this.instruccion=instruccion;
-        this.claveK=claveK;
     }
 }

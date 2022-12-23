@@ -39,7 +39,7 @@ public class  cliente{
         String[] cipherSuites = null;
 
         char[] passwdAlmacen = "123456".toCharArray();
-		    char[] passwdEntrada = "123456".toCharArray();
+		char[] passwdEntrada = "123456".toCharArray();
 
         //KEYSTORE
             System.setProperty("javax.net.ssl.keyStore", keyStorePath);
@@ -89,8 +89,9 @@ public class  cliente{
                         System.out.println("############Selecciona un cipher suite: ############");
                         String ciphnumstring = consola.readLine();
                         int ciphnum = Integer.parseInt(ciphnumstring);
-                        System.out.println("Has seleccionado:   "+cipherSuites[ciphnum]);
                         cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
+                        System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
+                        
 
 
 
@@ -103,6 +104,14 @@ public class  cliente{
                 System.out.println("\n*************************************************************");
                 System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
                 System.out.println("*************************************************************");
+                
+                
+                
+                
+                
+                
+                
+                
                 
                 socket.startHandshake();
 
@@ -141,15 +150,15 @@ public class  cliente{
                     PrivateKey  privateKey = keypair.getPrivate();
                     PublicKey   publicKey  = keypair.getPublic();
                     
-                    
+                    /*
                     
                     arqtest.firmar(privateKey,provider,algoritmo,algoritmo_base,true);
                     
-                    Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
+                  //  Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
                     
                     
                     
-                    outputSocketObject.writeObject(paqtest);
+                   // outputSocketObject.writeObject(paqtest);
                     
                     
                     outputSocketObject.flush();
@@ -160,13 +169,13 @@ public class  cliente{
                     BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                     String inputLine;
+*/
+                   // while ((inputLine = socketin.readLine()) != null)
+                     //   System.out.println(inputLine);
 
-                    while ((inputLine = socketin.readLine()) != null)
-                        System.out.println(inputLine);
-
-                        outputSocketObject.close();
+                       // outputSocketObject.close();
                         // socketout.close();
-                        // socket.close();*/
+                        // socket.close();
             } catch (Exception e) {
 			    e.printStackTrace();
 		    }
