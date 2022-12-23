@@ -15,7 +15,7 @@ import java.security.*;
 import java.security.spec.*;
 import javax.crypto.*;
 import java.lang.*;
-
+import java.lang.ProcessHandle.Info;
 import java.security.KeyStore;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -27,7 +27,6 @@ import javax.net.ssl.TrustManagerFactory;
 import java.security.cert.X509Certificate;
 
 public class  cliente{
-
     //private static String raizAlmacenes = null;
     private static String raizAlmacenes = "./Crypto/";
     private static String keyStorePath   = raizAlmacenes + "Cliente/KeyStoreCliente";
@@ -37,7 +36,7 @@ public class  cliente{
 
 
     public static void main(String[] args) throws Exception {
-
+        menu();
         String host =null;
         int port = 8085;
         String[] cipherSuites = null;
@@ -94,6 +93,7 @@ public class  cliente{
                           }
                         }
                         System.out.println("############Selecciona un cipher suite: ############");
+                      
                         String ciphnumstring = consola.readLine();
                         int ciphnum = Integer.parseInt(ciphnumstring);
                         cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
@@ -181,5 +181,48 @@ public class  cliente{
 
 
 
+    }
+
+    public static void menu(){
+        String Selection = "";
+        System.out.println("MOOT MOOT");
+        BufferedReader Info = new BufferedReader(new InputStreamReader(System.in));
+        try{
+            
+
+    while(Selection != "A"){
+       System.out.println("\n\n\n¿Que desea hacer?\n");
+       System.out.println("1. Presion A para enviar archivo al servidor.(registrar_documento)\n");
+       System.out.println("2. Presiona B para recibir documento. (recuperar_documento)\n");
+       System.out.println("3. Presiona S para salir. \n\n\n");
+
+       Selection = Info.readLine();
+       Selection = Selection.toUpperCase();
+
+        switch(Selection){
+            case "A": Registrar_fichero();
+            break;
+            case "B": Leer_fichero();
+            break;
+            case "S": 
+            return;
+            default:
+            System.out.println("Eleccion invalida \n");
+            break;
+        }
+        }
+        return;
+    }
+    catch(Throwable e){
+        e.printStackTrace();
+    }
+    }
+    public static void Registrar_fichero(){
+        System.out.println("Hemos enviao un fichero");
+        return;
+    }
+    public static void Leer_fichero(){
+    System.out.println("Hemos leido un fichero");
+        return;
     }
 }
