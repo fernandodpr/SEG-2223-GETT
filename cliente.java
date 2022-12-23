@@ -36,51 +36,69 @@ public class  cliente{
 
 
     public static void main(String[] args) throws Exception {
+        boolean salir = false;
+        do{
+            switch (menu()) {
+                case "A":
+                    menu_registro();
+                    break;
+                case "B":
+                    
+                    break;
+                case "S":
+                    salir = true;
+                    break;
+                default:
+                    break;
+            }
+        }while(!salir);
         
-                SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,"123456","localhost");
-                PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-                ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-                    String inputString = "Soy el documento";
-                    String claveK = "Soy la calve K";
-                    Archivo arqtest = new Archivo(inputString.getBytes(),"Soy el nombre del documento");
+        System.out.println("Estamos fuera del recorrido correcto");
+        SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,"123456","localhost");
+        PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+        ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
+        String inputString = "Soy el documento";
+        String claveK = "Soy la calve K";
+        Archivo arqtest = new Archivo(inputString.getBytes(),"Soy el nombre del documento");
 
 
-                    // Crea generador de claves
-                    KeyPairGenerator keyPairGen;
-                    keyPairGen = KeyPairGenerator.getInstance("RSA");
+        // Crea generador de claves
+        KeyPairGenerator keyPairGen;
+        keyPairGen = KeyPairGenerator.getInstance("RSA");
 
-                    // Crea generador de claves
+        // Crea generador de claves
 
-                    keyPairGen.initialize(2048);
+        keyPairGen.initialize(2048);
 
-                    // Generamos un par de claves (publica y privada)
-                    KeyPair     keypair    = keyPairGen.genKeyPair();
-                    PrivateKey  privateKey = keypair.getPrivate();
-                    PublicKey   publicKey  = keypair.getPublic();
+        // Generamos un par de claves (publica y privada)
+        KeyPair     keypair    = keyPairGen.genKeyPair();
+        PrivateKey  privateKey = keypair.getPrivate();
+        PublicKey   publicKey  = keypair.getPublic();
 
 
-                    //se pueden eliminar parametros y ese Provider (SunJCE) dudo que esté bn
-                    arqtest.firmar(privateKey,"SunJCE","SHA512withRSA","RSA",true);
+        //se pueden eliminar parametros y ese Provider (SunJCE) dudo que esté bn
+        arqtest.firmar(privateKey,"SunJCE","SHA512withRSA","RSA",true);
 
-                    Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
+        Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
 
-                    outputSocketObject.writeObject(paqtest);
+        outputSocketObject.writeObject(paqtest);
 
-                    outputSocketObject.flush();
+        outputSocketObject.flush();
 
-                    if(socketout.checkError())
-                        System.out.println("SSLSocketClient: java.io.PrintWriter error");
+        if(socketout.checkError())
+            System.out.println("SSLSocketClient: java.io.PrintWriter error");
 
-                    BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                    String inputLine;
+        String inputLine;
 
-                    while ((inputLine = socketin.readLine()) != null)
-                        System.out.println(inputLine);
-                        outputSocketObject.close();
-                        socketout.close();
-                        socket.close();
-         
+        while ((inputLine = socketin.readLine()) != null)
+            System.out.println(inputLine);
+            outputSocketObject.close();
+            socketout.close();
+            socket.close();
+
 
 
     }
@@ -186,46 +204,74 @@ public class  cliente{
         
     }
 
-    public static void menu(){
-        String Selection = "";
-        System.out.println("MOOT MOOT");
-        BufferedReader Info = new BufferedReader(new InputStreamReader(System.in));
+    public static String menu(){
+        String selection = null;
+        BufferedReader info = new BufferedReader(new InputStreamReader(System.in));
         try{
+             System.out.println("###########¿Que desea hacer?###########");
+            System.out.println("Presiona A para enviar archivo al servidor.(registrar_documento)");
+            System.out.println("Presiona B para recibir documento. (recuperar_documento)");
+            System.out.println("Presiona S para salir.");
+
+            selection = info.readLine();
+            selection = selection.toUpperCase();
             
-
-    while(Selection != "A"){
-       System.out.println("\n\n\n¿Que desea hacer?\n");
-       System.out.println("1. Presion A para enviar archivo al servidor.(registrar_documento)\n");
-       System.out.println("2. Presiona B para recibir documento. (recuperar_documento)\n");
-       System.out.println("3. Presiona S para salir. \n\n\n");
-
-       Selection = Info.readLine();
-       Selection = Selection.toUpperCase();
-
-        switch(Selection){
-            case "A": Registrar_fichero();
-            break;
-            case "B": Leer_fichero();
-            break;
-            case "S": 
-            return;
-            default:
-            System.out.println("Eleccion invalida \n");
-            break;
         }
+        catch(Throwable e){
+            e.printStackTrace();
         }
-        return;
-    }
-    catch(Throwable e){
-        e.printStackTrace();
-    }
+        return selection;
     }
     public static void Registrar_fichero(){
         System.out.println("Hemos enviao un fichero");
         return;
     }
-    public static void Leer_fichero(){
-    System.out.println("Hemos leido un fichero");
+    public static void menu_registro(){
+        try {
+            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
+            String psswd = solicitarPassword();
+            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
+            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
+            PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
+            Paquete paqtest = new Paquete(null,"Instruccion",null);
+
+            outputSocketObject.writeObject(paqtest);
+
+            outputSocketObject.flush();
+
+            if(socketout.checkError())
+                System.out.println("SSLSocketClient: java.io.PrintWriter error");
+
+            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            String inputLine;
+
+            while ((inputLine = socketin.readLine()) != null) System.out.println(inputLine);
+            outputSocketObject.close();
+            socketout.close();
+            socket.close();
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+        
         return;
+    }
+
+    private static String solicitarArchivo(String tipo,String def){
+        String archivo=null;
+        try {
+            System.out.println("Introduzca el path de "+tipo+" ["+def+"]:");
+            BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
+            archivo = consola.readLine();
+        } catch (Exception e) {
+
+        }
+        if (archivo=="A"){
+            
+        }
+        return archivo;
+        
     }
 }
