@@ -74,18 +74,18 @@ public class  Archivo implements Serializable  {
 		this.firma=null;
 		this.firma_registrador=null;
 	}
-	
+
 	public void firmar(PrivateKey privateKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
 
 		Signature signer = Signature.getInstance(algoritmo);
 		signer.initSign(privateKey);
 
 		byte[] firma = null;
-		int    longbloque;
-    	byte   bloque[]         = new byte[1024];
-    	long   filesize         = 0;
-		signer.update(this.documento);
-		
+
+    //byte   bloque[]         = new byte[1024];
+
+    signer.update(this.documento);
+
 		Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + "");
 
 		if(cliente){
@@ -97,7 +97,7 @@ public class  Archivo implements Serializable  {
 			Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + " con un tamaño " +this.firma_registrador.length + " por el servidor.");
 
 		}
-	  
+
 	}
 
 	public boolean verificar(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
@@ -109,7 +109,7 @@ public class  Archivo implements Serializable  {
 		else
 			keySpec = new PKCS8EncodedKeySpec(publicBytes);
 		KeyFactory keyFactory = KeyFactory.getInstance(algoritmo_base);
-		PublicKey  publicKey2 = keyFactory.generatePublic(keySpec);		
+		PublicKey  publicKey2 = keyFactory.generatePublic(keySpec);
 		// Inicializamos el objeto
 		verifier.initVerify(publicKey2);
 		verifier.update(this.documento);
@@ -117,7 +117,7 @@ public class  Archivo implements Serializable  {
 		boolean resultado = false;
 
 		if(cliente){
-			resultado = verifier.verify(this.firma);	
+			resultado = verifier.verify(this.firma);
 			Debug.info("Se ha comprobado: "+ this.nombreDocumento + "con resultado: "+ resultado);
 
 		}else{
@@ -125,9 +125,9 @@ public class  Archivo implements Serializable  {
 			Debug.info("Se ha comprobado: "+ this.nombreDocumento + "con resultado: "+ resultado);
 
 		}
-		
+
 		return resultado;
 	}
 
-    
+
 }

@@ -85,16 +85,10 @@ public class  server{
             socket = sslServerSocket.accept();
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
+
             
-            String provider         = "SunJCE";
-            String algoritmo        =  "MD5withRSA";
-                   String algoritmo_base   =  "RSA";
-                    int    longitud_clave   =  2048;
-                    int    longbloque;
-                    byte   bloque[]         = new byte[1024];
-                    long   filesize         = 0;
             Paquete test = (Paquete)inputSocketObject.readObject();
-            Debug.taco("Quieres ver mi paquete?");       
+            Debug.taco("Quieres ver mi paquete?");
             Debug.info(new String(test.getClaveK(), StandardCharsets.UTF_8));
             Debug.info(test.getInstruccion());
             Debug.info(test.getArchivo().getNumeroRegistro());
@@ -104,12 +98,12 @@ public class  server{
             Debug.info(test.getArchivo().getNombreDocumento());
             Debug.taco("Puta tu madre");
             Debug.info("Voy a verificar la firma.");
-            PublicKey publicKey = 
+            PublicKey publicKey =
                     KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(test.getClaveK()));
-            Debug.info("El resultado de la verificación es:  "+test.getArchivo().verificar(publicKey, provider, algoritmo, algoritmo_base,true));
+            Debug.info("El resultado de la verificación es:  "+test.getArchivo().verificar(publicKey, "SunJCE", "SHA512withRSA", "RSA",true));
 
             String inputLine;
-          
+
         inputLine = socketin.readLine();
           //while (() != null){
             System.out.println(inputLine);
