@@ -218,10 +218,10 @@ public class  cliente{
                     PrivateKey  privateKey = keypair.getPrivate();
                     PublicKey   publicKey  = keypair.getPublic();
                 //Se cifra el Archivo
-                    doc.cifrar(privateKey,"provider","algoritmo","algoritmobase",true);
+                    doc.cifrar(privateKey,"algoritmo",true);
                 //Establecemos en el paquete la calve K
                     paquete.setClaveK(keypair);
-                    paquete.cifrarClaveK(privateKey,"provider","algoritmo","algoritmobase",true);
+                    paquete.cifrarClaveK(privateKey,"algoritmo",true);
             //
 
         }catch(Exception e){

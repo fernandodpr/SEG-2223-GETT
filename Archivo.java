@@ -91,7 +91,7 @@ public class  Archivo implements Serializable  {
 		}
 
 	}
-	public void cifrar(PrivateKey privateKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+	public void cifrar(PrivateKey privateKey,String algoritmo,boolean cliente) throws Exception {
 		//Hay que cifrar this.documento
 		return;
 	}

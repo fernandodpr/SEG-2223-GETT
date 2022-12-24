@@ -36,7 +36,7 @@ public class  Paquete implements Serializable {
 
 
  //Cifrado por la calve pública del cliente o servidor
-	public void cifrarClaveK(PrivateKey privateKey,String provider,String algoritmo,String algoritmobase,boolean cliente) throws Exception {
+	public void cifrarClaveK(PrivateKey privateKey,String algoritmo,boolean cliente) throws Exception {
 		//Hay que cifrar this.claveK
 	}
 	public void descifrarClaveK(PublicKey publicKey,String provider,String algoritmo,String algoritmobase,boolean cliente) throws Exception {
