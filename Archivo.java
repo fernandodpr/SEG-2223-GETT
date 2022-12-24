@@ -96,10 +96,11 @@ public class  Archivo implements Serializable  {
 		Cipher cipher = Cipher.getInstance (algoritmo);
         cipher.init (Cipher.ENCRYPT_MODE, key);
 		this.documento = cipher.doFinal (this.documento);
+		this.cifrado = true;
 		
 		return;
 	}
-	public void descifrar(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+	public void descifrar(SecretKey key,String algoritmo,boolean cliente) throws Exception {
 		//Hay que descifrar this.documento
 		return;
 	}
