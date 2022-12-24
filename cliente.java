@@ -269,19 +269,14 @@ public class  cliente{
             boolean resultado = registrarDocumento(socket,keyStorePath,doc,trustStorePath,psswd);
 
 
-            Paquete paqtest = new Paquete(null,"Instruccion",null);
-            outputSocketObject.writeObject(paqtest);
-            outputSocketObject.flush();
 
-            if(socketout.checkError())
-                System.out.println("SSLSocketClient: java.io.PrintWriter error");
+            
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             String inputLine;
 
             while ((inputLine = socketin.readLine()) != null) System.out.println(inputLine);
-            outputSocketObject.close();
-            socketout.close();
+  
             socket.close();
         } catch (Exception e){
         }
