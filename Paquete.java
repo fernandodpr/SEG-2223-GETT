@@ -1,4 +1,7 @@
 import java.io.*;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 
 public class  Paquete implements Serializable {
@@ -10,7 +13,7 @@ public class  Paquete implements Serializable {
 		return this.archivo;
 	}
 
-	public void setclaveK(KeyPair clave){
+	public void setClaveK(KeyPair clave){
 		this.claveK=clave;
 		return;
 	}
@@ -33,15 +36,18 @@ public class  Paquete implements Serializable {
 
 
  //Cifrado por la calve pública del cliente o servidor
-	public void cifrarClaveK(PrivateKey privateKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+	public void cifrarClaveK(PrivateKey privateKey,String provider,String algoritmo,String algoritmobase,boolean cliente) throws Exception {
 		//Hay que cifrar this.claveK
 	}
-	public void descifrarClaveK(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+	public void descifrarClaveK(PublicKey publicKey,String provider,String algoritmo,String algoritmobase,boolean cliente) throws Exception {
 		//Hay que descifrar this.claveK
 	}
 
     public Paquete(Archivo archivo, String instruccion, byte[] claveK) {
         this.archivo=archivo;
         this.instruccion=instruccion;
+	}
+	public Paquete() {
+        
     }
 }

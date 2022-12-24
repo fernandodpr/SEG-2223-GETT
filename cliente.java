@@ -177,12 +177,33 @@ public class  cliente{
         return socket;
     }
     private static boolean registrarDocumento(SSLSocket socket,String keyStorePath,Archivo doc, String trustStorePath, String pswd){
+    try{ 
         //CertAuthC es el certificado de autenticación del cliente (que incorpora su identidad id de Propietario).
         //nombreDoc es un nombre, de una longitud maxima de 100 caracteres, para el documento.
         //documento es el contenido del fichero (cualquier tipo de fichero) con la información a registrar.
 
-        Paquete paquete;
-        //1. Se cifra la información de Archivo
+        Paquete paquete = new Paquete();
+        KeyStore keyStore;
+        
+        //Obtención de datos necesarios
+            keyStore  = KeyStore.getInstance("JCEKS");
+            keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
+            //Aqui no se si sería interesante pedirl al usuario el alias del certificado
+            String alias = "cliente-auth (cliente-sub ca)";
+            //alias=solicitarTexto("Introduzca el alias del certificado de autenticación",alias);
+            PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
+            PublicKey authPublicKey = (PublicKey)keyStore.getCertificate(alias);
+
+            alias = "cliente-sign (cliente-sub ca)";
+            //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
+            PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
+            PublicKey signPublicKey = (PublicKey)keyStore.getCertificate(alias);
+
+        //1. Se firma el archivo
+            //Aplicamos el metodo firma de Archivo
+            doc.firmar(signPrivateKey,"Provider","algoritmo","Algoritmo_base",true);
+
+        //2. Se cifra la información de Archivo
             // Crea generador de claves
                 KeyPairGenerator keyPairGen;
                 keyPairGen = KeyPairGenerator.getInstance("RSA");
@@ -192,12 +213,15 @@ public class  cliente{
                 PrivateKey  privateKey = keypair.getPrivate();
                 PublicKey   publicKey  = keypair.getPublic();
             //Se cifra el Archivo
-                doc.cifrar(privateKey,);
+                doc.cifrar(privateKey,"provider","algoritmo","algoritmobase",true);
             //Establecemos en el paquete la calve K
-                paquete.setclaveK(KeyPair);
-                paquete.cifrarClaveK();
-                
-        
+                paquete.setClaveK(keypair);
+                paquete.cifrarClaveK(privateKey,"provider","algoritmo","algoritmobase",true);
+        //
+
+    }catch(Exception e){
+        e.printStackTrace();
+    }
         
         
         
@@ -253,6 +277,23 @@ public class  cliente{
             return def;
         }else{
             return archivo;
+        }
+        
+        
+    }
+    private static String solicitarTexto(String mensaje,String def){
+        String data=null;
+        try {
+            System.out.println(mensaje+"  ["+def+"]:");
+            BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
+            data = consola.readLine();
+        } catch (Exception e) {
+
+        }
+        if (data.length()<4){
+            return def;
+        }else{
+            return data ;
         }
         
         
