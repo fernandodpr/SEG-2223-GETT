@@ -87,9 +87,9 @@ public class  cliente{
 
         Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
 
-        outputSocketObject.writeObject(paqtest);
+            outputSocketObject.writeObject(paqtest);
 
-        outputSocketObject.flush();
+            outputSocketObject.flush();
 
         if(socketout.checkError())
             System.out.println("SSLSocketClient: java.io.PrintWriter error");
@@ -189,6 +189,7 @@ public class  cliente{
 
             Paquete paquete = new Paquete();
             KeyStore keyStore;
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
             
             //Obtención de datos necesarios
                 keyStore  = KeyStore.getInstance("JCEKS");
@@ -197,12 +198,12 @@ public class  cliente{
                 String alias = "cliente-auth (cliente-sub ca)";
                 //alias=solicitarTexto("Introduzca el alias del certificado de autenticación",alias);
                 PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
-                PublicKey authPublicKey = keyStore.getCertificate(alias).getPublicKey();
+                java.security.cert.Certificate authCertificate = keyStore.getCertificate(alias);
 
                 alias = "cliente-sign (cliente-sub ca)";
                 //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                 PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
-                PublicKey signPublicKey = keyStore.getCertificate(alias).getPublicKey();
+                java.security.cert.Certificate signCertificate = keyStore.getCertificate(alias);
 
             //1. Se firma el archivo
                 //Aplicamos el metodo firma de Archivo
@@ -226,7 +227,15 @@ public class  cliente{
                     paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA/ECB/PKCS1Padding");
                     Debug.info("Se ha cifrado la clave K.");
             
-            //
+            //Se completa la información del paquete
+                paquete.setSignCertificateClient(signCertificate);
+                paquete.setAuthCertificateClient(authCertificate);
+                paquete.setArchivo(doc);
+            //Se envía el tipo de operación a realizar
+                paquete.setInstruccion("PUT:"+doc.getNombreDocumento());
+                outputSocketObject.writeObject(paquete);
+                outputSocketObject.flush();
+                Debug.info("Se ha enviado la operación:   "+"PUT:"+doc.getNombreDocumento());
 
         }catch(Exception e){
         e.printStackTrace();

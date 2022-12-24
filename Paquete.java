@@ -14,6 +14,27 @@ public class  Paquete implements Serializable {
     private Archivo archivo; //con el documento cifrado por clave K
 	private String instruccion;
 	private byte[] claveK;
+	private java.security.cert.Certificate signCertificateClient;
+	private java.security.cert.Certificate authCertificateClient;
+
+	public java.security.cert.Certificate getAuthCertificateClient() {
+		return this.authCertificateClient;
+	}
+
+	public void setAuthCertificateClient(java.security.cert.Certificate authCertificateClient) {
+		this.authCertificateClient = authCertificateClient;
+	}
+
+
+
+	public java.security.cert.Certificate getSignCertificateClient() {
+		return this.signCertificateClient;
+	}
+
+	public void setSignCertificateClient(java.security.cert.Certificate signCertificateClient) {
+		this.signCertificateClient = signCertificateClient;
+	}
+
 
 	public Archivo getArchivo() {
 		return this.archivo;
