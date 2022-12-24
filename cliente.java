@@ -258,8 +258,6 @@ public class  cliente{
 
             //Creación de socket 
             SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
-            PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
 
             //Confección del documento
             //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
