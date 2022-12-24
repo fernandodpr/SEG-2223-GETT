@@ -13,14 +13,10 @@ Nuevo CSR para firmar con el CA
 openssl req -new     -config sub-ca.conf     -out servidor-sub-ca.csr     -keyout private/servidor-sub-ca.key
 
 En el Root CA firmamos la req
-
-
 openssl ca -config root-ca.conf -in ../sub-ca/sub-ca.csr -out ../sub-ca/sub-ca.crt -extensions sub_ca_ext -days 365
 
-
-
-Step 12: OpenSSL Create Certificate Chain (Certificate Bundle)
-To openssl create certificate chain (certificate bundle), concatenate the intermediate and root certificates together.
+    Step 12: OpenSSL Create Certificate Chain (Certificate Bundle)
+    To openssl create certificate chain (certificate bundle), concatenate the intermediate and root certificates together.
 
 In the below example I have combined my Root and Intermediate CA certificates to openssl create certificate chain in Linux. We will use this file later to verify certificates signed by the intermediate CA.
 cat intermediate/certs/intermediate.cacert.pem certs/cacert.pem > intermediate/certs/ca-chain-bundle.cert.pem
@@ -28,6 +24,10 @@ cat intermediate/certs/intermediate.cacert.pem certs/cacert.pem > intermediate/c
 
 
 Crear Nuevos certificados
-openssl req -new -out Cliente-Encrypt.csr     -keyout Cliente-Encrypt.key
+openssl req -new -out Cliente-Sign.csr     -keyout Cliente-Sign.key
 Firmarlos en el sub_ca
-openssl ca -config sub-ca.conf -in server.csr -out server.crt -extensions server_ext
+openssl ca -config servidor-sub-ca.conf -in ../Servidor/Server-Sign.csr -out ../Servidor/Server-Sign.crt -extensions sign
+openssl ca -config servidor-sub-ca.conf -in ../Servidor/Server-Auth.csr -out ../Servidor/Server-Auth.crt -extensions auth
+
+openssl ca -config cliente-sub-ca.conf -in ../Cliente/Cliente-Sign.csr -out ../Cliente/Cliente-Sign.crt -extensions sign
+openssl ca -config cliente-sub-ca.conf -in ../Cliente/Cliente-Auth.csr -out ../Cliente/Cliente-Auth.crt -extensions auth
