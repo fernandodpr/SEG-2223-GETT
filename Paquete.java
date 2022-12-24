@@ -1,24 +1,33 @@
 import java.io.*;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+
+import java.net.*;
+import java.security.*;
+import java.security.spec.*;
+import javax.crypto.*;
+import java.lang.*;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public class  Paquete implements Serializable {
     private Archivo archivo; //con el documento cifrado por clave K
 	private String instruccion;
-	private KeyPair claveK;
+	private byte[] claveK;
 
 	public Archivo getArchivo() {
 		return this.archivo;
 	}
 
-	public void setClaveK(KeyPair clave){
-		this.claveK=clave;
+	public void setClaveK(SecretKey clave){
+		this.claveK=clave.getEncoded();
+
 		return;
 	}
-	public KeyPair getclaveK(){
-		return claveK;
+	public SecretKey getclaveK(){
+		SecretKey originalKey = new SecretKeySpec(claveK, 0, claveK.length, "AES");
+		return originalKey;
+		
 	}
 
 	public void setArchivo(Archivo archivo) {
@@ -36,8 +45,11 @@ public class  Paquete implements Serializable {
 
 
  //Cifrado por la calve pública del cliente o servidor
-	public void cifrarClaveK(PrivateKey privateKey,String algoritmo,boolean cliente) throws Exception {
-		//Hay que cifrar this.claveK
+	public void cifrarClaveK(PublicKey pubKey,String algoritmo) throws Exception {
+		Cipher cipher = Cipher.getInstance(algoritmo);
+		cipher.init(Cipher.ENCRYPT_MODE,pubKey);
+		this.claveK=cipher.doFinal(this.claveK);
+		return;
 	}
 	public void descifrarClaveK(PublicKey publicKey,String provider,String algoritmo,String algoritmobase,boolean cliente) throws Exception {
 		//Hay que descifrar this.claveK

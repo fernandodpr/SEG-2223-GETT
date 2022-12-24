@@ -210,18 +210,22 @@ public class  cliente{
 
             //2. Se cifra la información de Archivo
                 // Crea generador de claves
-                    KeyPairGenerator keyPairGen;
-                    keyPairGen = KeyPairGenerator.getInstance("RSA");
-                    keyPairGen.initialize(2048);
-                // Generamos un par de claves (publica y privada)
-                    KeyPair     keypair    = keyPairGen.genKeyPair();
-                    PrivateKey  privateKey = keypair.getPrivate();
-                    PublicKey   publicKey  = keypair.getPublic();
+                    KeyGenerator keyGen;
+                    keyGen =  KeyGenerator.getInstance ("AES");
+                    keyGen.init (192);
+                // Generamos una clave
+                    SecretKey claveK = keyGen.generateKey();
                 //Se cifra el Archivo
-                    doc.cifrar(privateKey,"algoritmo",true);
+                    doc.cifrar(claveK,"AES/CBC/PKCS5Padding",true);
+                    Debug.info("Se ha cifrado el archivo.");
                 //Establecemos en el paquete la calve K
-                    paquete.setClaveK(keypair);
-                    paquete.cifrarClaveK(privateKey,"algoritmo",true);
+                    paquete.setClaveK(claveK);
+                //Ciframos la clave K con auth del Server
+                    SSLSession session = socket.getSession();
+                    java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
+                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA/ECB/PKCS1Padding");
+                    Debug.info("Se ha cifrado la clave K.");
+            
             //
 
         }catch(Exception e){

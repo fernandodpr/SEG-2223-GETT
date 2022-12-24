@@ -91,8 +91,12 @@ public class  Archivo implements Serializable  {
 		}
 
 	}
-	public void cifrar(PrivateKey privateKey,String algoritmo,boolean cliente) throws Exception {
+	public void cifrar(SecretKey key,String algoritmo,boolean cliente) throws Exception {
 		//Hay que cifrar this.documento
+		Cipher cipher = Cipher.getInstance (algoritmo);
+        cipher.init (Cipher.ENCRYPT_MODE, key);
+		this.documento = cipher.doFinal (this.documento);
+		
 		return;
 	}
 	public void descifrar(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
