@@ -15,6 +15,8 @@ import java.security.*;
 import java.security.spec.*;
 import javax.crypto.*;
 import java.lang.*;
+import java.io.File;
+
 import java.lang.ProcessHandle.Info;
 import java.security.KeyStore;
 import javax.net.ssl.KeyManagerFactory;
@@ -25,6 +27,9 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.security.cert.X509Certificate;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.nio.file.Files;
 
 public class  cliente{
     //private static String raizAlmacenes = null;
@@ -78,7 +83,7 @@ public class  cliente{
 
 
         //se pueden eliminar parametros y ese Provider (SunJCE) dudo que esté bn
-        arqtest.firmar(privateKey,"SunJCE","SHA512withRSA","RSA",true);
+        arqtest.firmar(privateKey,"SHA512withRSA",true);
 
         Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
 
@@ -177,54 +182,51 @@ public class  cliente{
         return socket;
     }
     private static boolean registrarDocumento(SSLSocket socket,String keyStorePath,Archivo doc, String trustStorePath, String pswd){
-    try{ 
-        //CertAuthC es el certificado de autenticación del cliente (que incorpora su identidad id de Propietario).
-        //nombreDoc es un nombre, de una longitud maxima de 100 caracteres, para el documento.
-        //documento es el contenido del fichero (cualquier tipo de fichero) con la información a registrar.
+        try{ 
+            //CertAuthC es el certificado de autenticación del cliente (que incorpora su identidad id de Propietario).
+            //nombreDoc es un nombre, de una longitud maxima de 100 caracteres, para el documento.
+            //documento es el contenido del fichero (cualquier tipo de fichero) con la información a registrar.
 
-        Paquete paquete = new Paquete();
-        KeyStore keyStore;
-        
-        //Obtención de datos necesarios
-            keyStore  = KeyStore.getInstance("JCEKS");
-            keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
-            //Aqui no se si sería interesante pedirl al usuario el alias del certificado
-            String alias = "cliente-auth (cliente-sub ca)";
-            //alias=solicitarTexto("Introduzca el alias del certificado de autenticación",alias);
-            PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
-            PublicKey authPublicKey = (PublicKey)keyStore.getCertificate(alias);
+            Paquete paquete = new Paquete();
+            KeyStore keyStore;
+            
+            //Obtención de datos necesarios
+                keyStore  = KeyStore.getInstance("JCEKS");
+                keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
+                //Aqui no se si sería interesante pedirl al usuario el alias del certificado
+                String alias = "cliente-auth (cliente-sub ca)";
+                //alias=solicitarTexto("Introduzca el alias del certificado de autenticación",alias);
+                PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
+                PublicKey authPublicKey = keyStore.getCertificate(alias).getPublicKey();
 
-            alias = "cliente-sign (cliente-sub ca)";
-            //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
-            PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
-            PublicKey signPublicKey = (PublicKey)keyStore.getCertificate(alias);
+                alias = "cliente-sign (cliente-sub ca)";
+                //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
+                PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
+                PublicKey signPublicKey = keyStore.getCertificate(alias).getPublicKey();
 
-        //1. Se firma el archivo
-            //Aplicamos el metodo firma de Archivo
-            doc.firmar(signPrivateKey,"Provider","algoritmo","Algoritmo_base",true);
+            //1. Se firma el archivo
+                //Aplicamos el metodo firma de Archivo
+                doc.firmar(signPrivateKey,"SHA256withRSA",true);
 
-        //2. Se cifra la información de Archivo
-            // Crea generador de claves
-                KeyPairGenerator keyPairGen;
-                keyPairGen = KeyPairGenerator.getInstance("RSA");
-                keyPairGen.initialize(2048);
-            // Generamos un par de claves (publica y privada)
-                KeyPair     keypair    = keyPairGen.genKeyPair();
-                PrivateKey  privateKey = keypair.getPrivate();
-                PublicKey   publicKey  = keypair.getPublic();
-            //Se cifra el Archivo
-                doc.cifrar(privateKey,"provider","algoritmo","algoritmobase",true);
-            //Establecemos en el paquete la calve K
-                paquete.setClaveK(keypair);
-                paquete.cifrarClaveK(privateKey,"provider","algoritmo","algoritmobase",true);
-        //
+            //2. Se cifra la información de Archivo
+                // Crea generador de claves
+                    KeyPairGenerator keyPairGen;
+                    keyPairGen = KeyPairGenerator.getInstance("RSA");
+                    keyPairGen.initialize(2048);
+                // Generamos un par de claves (publica y privada)
+                    KeyPair     keypair    = keyPairGen.genKeyPair();
+                    PrivateKey  privateKey = keypair.getPrivate();
+                    PublicKey   publicKey  = keypair.getPublic();
+                //Se cifra el Archivo
+                    doc.cifrar(privateKey,"provider","algoritmo","algoritmobase",true);
+                //Establecemos en el paquete la calve K
+                    paquete.setClaveK(keypair);
+                    paquete.cifrarClaveK(privateKey,"provider","algoritmo","algoritmobase",true);
+            //
 
-    }catch(Exception e){
+        }catch(Exception e){
         e.printStackTrace();
-    }
-        
-        
-        
+        }
         return true;
     }
     
@@ -245,6 +247,16 @@ public class  cliente{
             SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
             PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
+            //Confección del documento
+            //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
+            Path documentPath = Paths.get(solicitarArchivo("documento","./enviotest.png"));   
+            Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
+            Debug.info("Se ha creado el archivo");
+
+
+            boolean resultado = registrarDocumento(socket,keyStorePath,doc,trustStorePath,psswd);
+
 
             Paquete paqtest = new Paquete(null,"Instruccion",null);
             outputSocketObject.writeObject(paqtest);

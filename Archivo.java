@@ -75,7 +75,7 @@ public class  Archivo implements Serializable  {
 		this.firma_registrador=null;
 	}
 
-	public void firmar(PrivateKey privateKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+	public void firmar(PrivateKey privateKey,String algoritmo,boolean cliente) throws Exception {
 		Signature signer = Signature.getInstance(algoritmo);
 		signer.initSign(privateKey);
 		byte[] firma = null;
