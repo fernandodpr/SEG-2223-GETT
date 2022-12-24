@@ -184,4 +184,33 @@ public class  server{
 
         }*/
     }
+    private static void definirRevocacionOCSPStapling_Metodo1()
+	{
+    	//
+    	//  Metodo 1: Con URL en el campo AIA del certificado del servidor
+    	//
+    	    	
+	    	System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
+		System.setProperty("jdk.tls.stapling.responderOverride","false");
+
+	//  Cambios en el certificado del servidor:
+	//      En la seccion [server_ext] del fichero root-ca.conf), añadir ñla siguiente linea
+	//  
+        //      authorityInfoAccess= OCSP; URI:http://localhost:9080
+	//
+        //   Luego volver a firmar el certificado e importarlo al keyStore del server
+
+	}
+
+    private static void definirRevocacionOCSPStapling_Metodo2()
+	{    		    
+    	//
+    	//  Metodo 2: Con URL en el codigo java del server  (aqui)
+    	//
+    
+    		System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
+	  	System.setProperty("jdk.tls.stapling.responderOverride","true");
+		System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.0.50:9080");		
+		System.setProperty("jdk.tls.stapling.ignoreExtensions", "true");
+	}
 }

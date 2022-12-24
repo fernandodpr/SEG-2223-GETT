@@ -76,28 +76,28 @@ public class  Archivo implements Serializable  {
 	}
 
 	public void firmar(PrivateKey privateKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
-
 		Signature signer = Signature.getInstance(algoritmo);
 		signer.initSign(privateKey);
-
 		byte[] firma = null;
-
-    //byte   bloque[]         = new byte[1024];
-
-    signer.update(this.documento);
-
+    	//byte   bloque[]         = new byte[1024];
+    	signer.update(this.documento);
 		Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + "");
-
 		if(cliente){
 			this.firma=signer.sign();
 			Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + " con un tamaño " +this.firma.length + " por el cliente.");
-
 		}else{
 			this.firma_registrador=signer.sign();
 			Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + " con un tamaño " +this.firma_registrador.length + " por el servidor.");
-
 		}
 
+	}
+	public void cifrar(PrivateKey privateKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+		//Hay que cifrar this.documento
+		return;
+	}
+	public void descifrar(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+		//Hay que descifrar this.documento
+		return;
 	}
 
 	public boolean verificar(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {

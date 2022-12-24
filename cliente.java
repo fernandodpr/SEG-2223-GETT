@@ -99,8 +99,6 @@ public class  cliente{
             socketout.close();
             socket.close();
 
-
-
     }
 
     private static SSLSocket handshakeTLS(String host, int port,String keyStorePath, String trustStorePath, String pswd, String IpOCSPResponder) throws Exception{
@@ -178,7 +176,31 @@ public class  cliente{
                 }
         return socket;
     }
-    private static boolean registrarDocumento(SSLSocket socket,String keyStorePath, String trustStorePath, String pswd){
+    private static boolean registrarDocumento(SSLSocket socket,String keyStorePath,Archivo doc, String trustStorePath, String pswd){
+        //CertAuthC es el certificado de autenticación del cliente (que incorpora su identidad id de Propietario).
+        //nombreDoc es un nombre, de una longitud maxima de 100 caracteres, para el documento.
+        //documento es el contenido del fichero (cualquier tipo de fichero) con la información a registrar.
+
+        Paquete paquete;
+        //1. Se cifra la información de Archivo
+            // Crea generador de claves
+                KeyPairGenerator keyPairGen;
+                keyPairGen = KeyPairGenerator.getInstance("RSA");
+                keyPairGen.initialize(2048);
+            // Generamos un par de claves (publica y privada)
+                KeyPair     keypair    = keyPairGen.genKeyPair();
+                PrivateKey  privateKey = keypair.getPrivate();
+                PublicKey   publicKey  = keypair.getPublic();
+            //Se cifra el Archivo
+                doc.cifrar(privateKey,);
+            //Establecemos en el paquete la calve K
+                paquete.setclaveK(KeyPair);
+                paquete.cifrarClaveK();
+                
+        
+        
+        
+        
         return true;
     }
     
@@ -214,13 +236,10 @@ public class  cliente{
             outputSocketObject.close();
             socketout.close();
             socket.close();
-        } catch (Exception e) {
-            
+        } catch (Exception e){
         }
-        
         return;
     }
-
     private static String solicitarArchivo(String tipo,String def){
         String archivo=null;
         try {
@@ -274,4 +293,17 @@ public class  cliente{
         }
         return selection;
     }
+    private static void definirRevocacionOCSP(){
+		// Almacen de claves
+		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
+		System.setProperty("ocsp.enable",                            "true");
+
+	}
+    private static void definirRevocacionOCSPStapling(){
+		// Almacen de claves
+		System.setProperty("jdk.tls.client.enableStatusRequestExtension",   "true");
+		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
+		System.setProperty("ocsp.enable",                            "false");
+
+	}
 }

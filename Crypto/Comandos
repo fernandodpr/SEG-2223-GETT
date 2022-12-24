@@ -26,8 +26,17 @@ cat intermediate/certs/intermediate.cacert.pem certs/cacert.pem > intermediate/c
 Crear Nuevos certificados
 openssl req -new -out Cliente-Sign.csr     -keyout Cliente-Sign.key
 Firmarlos en el sub_ca
+
+
+ES PO Vigo Seguridad Fernando Juan Pedro Server-Sign Server-Auth
+openssl req -new -out Server-Sign.csr     -keyout Server-Sign.key
+openssl req -new -out Server-Auth.csr     -keyout Server-Auth.key
 openssl ca -config servidor-sub-ca.conf -in ../Servidor/Server-Sign.csr -out ../Servidor/Server-Sign.crt -extensions sign
 openssl ca -config servidor-sub-ca.conf -in ../Servidor/Server-Auth.csr -out ../Servidor/Server-Auth.crt -extensions auth
 
+
+ES PO Vigo Seguridad Fernando Juan Pedro Cliente-Sign Cliente-Auth
+openssl req -new -out Cliente-Sign.csr     -keyout Cliente-Sign.key
+openssl req -new -out Cliente-Auth.csr     -keyout Cliente-Auth.key
 openssl ca -config cliente-sub-ca.conf -in ../Cliente/Cliente-Sign.csr -out ../Cliente/Cliente-Sign.crt -extensions sign
 openssl ca -config cliente-sub-ca.conf -in ../Cliente/Cliente-Auth.csr -out ../Cliente/Cliente-Auth.crt -extensions auth
