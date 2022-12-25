@@ -246,6 +246,7 @@ public class  server{
             //Se firman id Registro, id Propietario, documento, firmaDoc
                 alias = "server-sign (servidor-sub ca)";
                 PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
+                java.security.cert.Certificate signCert = keyStore.getCertificate(alias);
                 paqueteRecibido.getArchivo().firmar(signPrivateKey,"SHA256withRSA",false);
                 Debug.info("Se ha firmado id Registro, id Propietario, documento, firmaDoc");
             //Se Cifra de nuevo el archivo para poder guardarlo  //TODO: 
@@ -256,7 +257,18 @@ public class  server{
             //Se guarda el documento en un fichero con el nombre correspondiente
                 guardaDocumento(paqueteRecibido.getArchivo());
                 Debug.info("Se ha guardado el archivo");
+            
 
+            // Respuesta al cliente
+                Paquete respuesta = new Paquete();
+
+                respuesta.setInstruccion("Hola");
+                respuesta.setIdPropietario(paqueteRecibido.getArchivo().getIdPropietario());
+                respuesta.setSignCertificateServer(signCert);
+                respuesta.setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
+
+
+                
             }catch (Exception e){
                 e.printStackTrace();
             }

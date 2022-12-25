@@ -12,7 +12,7 @@ public class  Archivo implements Serializable  {
 	private int numeroRegistro;
 	private String idPropietario;
 
-	public Object getIdPropietario() {
+	public String getIdPropietario() {
 		return this.idPropietario;
 	}
 
