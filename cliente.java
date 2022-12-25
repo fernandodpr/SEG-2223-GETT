@@ -224,7 +224,7 @@ public class  cliente{
                 //Ciframos la clave K con auth del Server
                     SSLSession session = socket.getSession();
                     java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
-                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA/ECB/PKCS1Padding");
+                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA");
                     Debug.info("Se ha cifrado la clave K.");
             
             //Se completa la información del paquete

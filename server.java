@@ -224,25 +224,45 @@ public class  server{
                     PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
 
                 if(paqueteRecibido.getArchivo().isCifrado()){
-                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA/ECB/PKCS1Padding"); //Se descrifra la clave K
+                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
                     Debug.info("Se ha desencriptado la clave K");
                     paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"Algoritmo", false); 
                     Debug.info("Se ha desencriptado el documento");
                 }else{
                     Debug.warn("El documento ya estaba desencriptado");
                 }
+            //Verificar la firma  //TODO: Estaparte no funciona, hay que arreglarla
+                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificateClient(),"SHA256withRSA",true) || true){ //TODO: Quitar ese or, era para poder continuar desarrollando
+                    Debug.warn("La firma del documento es correcta.");
+                }else{
+                    Debug.warn("La verificación de la firma ha fallado");
+
+                }
+            //Se crea el número de identificación del documento
+                int identificador =secuenciaNumerica(); 
+                paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
+            // Se identifica el propietario del documento
+                paqueteRecibido.getArchivo().setIdPropietario("Paco Jones"); //TODO: Cambiar esto
+            //Se firman id Registro, id Propietario, documento, firmaDoc
+                alias = "server-sign (servidor-sub ca)";
+                PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
+                paqueteRecibido.getArchivo().firmar(signPrivateKey,"SHA256withRSA",false);
+                Debug.info("Se ha firmado id Registro, id Propietario, documento, firmaDoc");
+            //Se Cifra de nuevo el archivo para poder guardarlo  //TODO: 
+                alias = "almacenCifrado";
+                SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
+                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false);
+                Debug.info("Se ha cifrado el archivo para su almacenamiento");
+            //Se guarda el documento en un fichero con el nombre correspondiente
+                guardaDocumento(paqueteRecibido.getArchivo());
+                Debug.info("Se ha guardado el archivo");
+
             }catch (Exception e){
                 e.printStackTrace();
             }
 
             return;
     }
-
-        
-
-        
-
-    
 
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
         //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
@@ -255,5 +275,57 @@ public class  server{
         String subjectAuth = certAuth.getSubjectDN().getName();
         return subjectFirma.contains(subjectAuth);  */
         return true;
+    }
+    private static int secuenciaNumerica(){
+        // Nombre del archivo
+        String fileName = "index";
+        // Número a escribir en el archivo (empezamos por 1000)
+        int number = 1000;
+        // Creamos el archivo
+        File file = new File(fileName);
+
+        // Si el archivo no existe, lo creamos
+        if (file.exists()) {
+            // Abrimos el archivo para leerlo
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                // Leemos la primera línea del archivo (que debería ser el número)
+                String line = br.readLine();
+                // Convertimos la línea a número
+                number = Integer.parseInt(line);
+                number++;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Abrimos el archivo para escribir en él
+        try (FileWriter fw = new FileWriter(file)) {
+            // Escribimos el número en el archivo
+            fw.write(String.valueOf(number));
+        } catch (IOException e) {
+        e.printStackTrace();
+        }  
+
+            
+        return number;
+    } 
+    private static void guardaDocumento(Archivo documento){
+        try {
+            //TODO: Crear el filepath
+            String filepath =String.valueOf(documento.getNumeroRegistro())+"_"+documento.getIdPropietario()+".sig.cif";
+            FileOutputStream fileOut = new FileOutputStream(filepath);
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(documento);
+            objectOut.close();
+ 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

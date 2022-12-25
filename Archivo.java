@@ -9,7 +9,17 @@ import javax.crypto.*;
 import java.lang.*;
 
 public class  Archivo implements Serializable  {
-    private String numeroRegistro;
+	private int numeroRegistro;
+	private String idPropietario;
+
+	public Object getIdPropietario() {
+		return this.idPropietario;
+	}
+
+	public void setIdPropietario(String idPropietario) {
+		this.idPropietario = idPropietario;
+	}
+;
     private String timestamp;
     private byte[] documento;  //esto se guarda cifardo
     private boolean cifrado;
@@ -25,10 +35,10 @@ public class  Archivo implements Serializable  {
 	public void setCifrado(boolean cifrado) {
 		this.cifrado = cifrado;
     }
-	public String getNumeroRegistro() {
+	public int getNumeroRegistro() {
 		return this.numeroRegistro;
 	}
-	public void setNumeroRegistro(String numeroRegistro) {
+	public void setNumeroRegistro(int numeroRegistro) {
 		this.numeroRegistro = numeroRegistro;
 	}
 	public String getTimestamp() {
@@ -66,7 +76,7 @@ public class  Archivo implements Serializable  {
 
 	//Métodos para comprobar firma
     public Archivo(byte[] documento,String nombreDocumento) {
-		this.numeroRegistro= null;
+		this.numeroRegistro= 0;
 		this.timestamp=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());
 		this.documento=documento;
 		this.cifrado=false;
@@ -80,12 +90,19 @@ public class  Archivo implements Serializable  {
 		signer.initSign(privateKey);
 		byte[] firma = null;
     	//byte   bloque[]         = new byte[1024];
-    	signer.update(this.documento);
+    	
 		Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + "");
 		if(cliente){
+			signer.update(this.documento);
 			this.firma=signer.sign();
 			Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + " con un tamaño " +this.firma.length + " por el cliente.");
 		}else{
+			ByteArrayOutputStream firmaServidor = new ByteArrayOutputStream( );
+			firmaServidor.write(this.numeroRegistro);
+			firmaServidor.write(this.idPropietario.getBytes());
+			firmaServidor.write(this.documento);
+			firmaServidor.write(this.firma);
+			signer.update(firmaServidor.toByteArray());
 			this.firma_registrador=signer.sign();
 			Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + " con un tamaño " +this.firma_registrador.length + " por el servidor.");
 		}
@@ -94,9 +111,13 @@ public class  Archivo implements Serializable  {
 	public void cifrar(SecretKey key,String algoritmo,boolean cliente) throws Exception {
 		//Hay que cifrar this.documento
 		Cipher cipher = Cipher.getInstance (algoritmo);
-        cipher.init (Cipher.ENCRYPT_MODE, key);
+		cipher.init (Cipher.ENCRYPT_MODE, key);
+		
 		this.documento = cipher.doFinal (this.documento);
 		this.cifrado = true;
+
+		
+		
 		
 		return;
 	}
@@ -105,29 +126,20 @@ public class  Archivo implements Serializable  {
 		return;
 	}
 
-	public boolean verificar(PublicKey publicKey,String provider,String algoritmo,String algoritmo_base,boolean cliente) throws Exception {
+	public boolean verificar(java.security.cert.Certificate publicKey,String algoritmo,boolean cliente) throws Exception {
 		Signature verifier=Signature.getInstance(algoritmo);
-		byte[] publicBytes  = publicKey.getEncoded();
-		EncodedKeySpec keySpec;
-		if (publicKey.getFormat().equals("X.509"))
-			keySpec = new X509EncodedKeySpec (publicBytes);
-		else
-			keySpec = new PKCS8EncodedKeySpec(publicBytes);
-		KeyFactory keyFactory = KeyFactory.getInstance(algoritmo_base);
-		PublicKey  publicKey2 = keyFactory.generatePublic(keySpec);
-		// Inicializamos el objeto
-		verifier.initVerify(publicKey2);
+		verifier.initVerify(publicKey);
 		verifier.update(this.documento);
-
 		boolean resultado = false;
 
 		if(cliente){
+			
 			resultado = verifier.verify(this.firma);
-			Debug.info("Se ha comprobado: "+ this.nombreDocumento + "con resultado: "+ resultado);
+			Debug.info("Se ha comprobado la firma del cliente de: "+ this.nombreDocumento + " con resultado: "+ resultado);
 
 		}else{
 			resultado = verifier.verify(this.firma_registrador);
-			Debug.info("Se ha comprobado: "+ this.nombreDocumento + "con resultado: "+ resultado);
+			Debug.info("Se ha comprobado la firma del registrador de: "+ this.nombreDocumento + " con resultado: "+ resultado);
 
 		}
 
