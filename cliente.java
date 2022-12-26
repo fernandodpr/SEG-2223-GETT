@@ -48,7 +48,7 @@ public class  cliente{
                     menu_registro();
                     break;
                 case "B":
-                    
+
                     break;
                 case "S":
                     salir = true;
@@ -57,7 +57,7 @@ public class  cliente{
                     break;
             }
         }while(!salir);
-        
+
         System.out.println("Estamos fuera del recorrido correcto");
         SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,"123456","localhost");
         PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
@@ -107,8 +107,8 @@ public class  cliente{
     }
 
     private static SSLSocket handshakeTLS(String host, int port,String keyStorePath, String trustStorePath, String pswd, String IpOCSPResponder) throws Exception{
-           
-            SSLSocket socket; 
+
+            SSLSocket socket;
             //KEYSTORE
                 System.setProperty("javax.net.ssl.keyStore", keyStorePath);
                 System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
@@ -148,7 +148,7 @@ public class  cliente{
                 System.out.println("******** CypherSuites Disponibles **********");
                 cipherSuites = factory.getSupportedCipherSuites();
                 for (int i = 0; i < cipherSuites.length; i++){
-                    if(cipherSuites[i].contains("AES") && !cipherSuites[i].contains("WITH_AES")){
+                    if(cipherSuites[i].contains("TLS_AES_") || cipherSuites[i].contains("TLS_CHACHA")){
                         System.out.println(i+"    "+cipherSuites[i]);
                     }
                 }
@@ -176,13 +176,13 @@ public class  cliente{
                     System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
                 }
                 for(int i=0;i<servercerts.length;i++){
-                    X509Certificate peercert = (X509Certificate)servercerts[i];      
+                    X509Certificate peercert = (X509Certificate)servercerts[i];
                     System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
                 }
         return socket;
     }
     private static boolean registrarDocumento(SSLSocket socket,String keyStorePath,Archivo doc, String trustStorePath, String pswd){
-        try{ 
+        try{
             //CertAuthC es el certificado de autenticación del cliente (que incorpora su identidad id de Propietario).
             //nombreDoc es un nombre, de una longitud maxima de 100 caracteres, para el documento.
             //documento es el contenido del fichero (cualquier tipo de fichero) con la información a registrar.
@@ -190,7 +190,7 @@ public class  cliente{
             Paquete paquete = new Paquete();
             KeyStore keyStore;
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-            
+
             //Obtención de datos necesarios
                 keyStore  = KeyStore.getInstance("JCEKS");
                 keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
@@ -223,10 +223,14 @@ public class  cliente{
                     paquete.setClaveK(claveK);
                 //Ciframos la clave K con auth del Server
                     SSLSession session = socket.getSession();
+                    alias = "server_auth";
                     java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
-                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA");
+                    //X509Certificate certi = (X509Certificate) trustStore.getCertificate(alias);
+                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA/ECB/PKCS1Padding");
+                    //paquete.cifrarClaveK(certi.getPublicKey(),"RSA/ECB/PKCS1Padding");
+
                     Debug.info("Se ha cifrado la clave K.");
-            
+
             //Se completa la información del paquete
                 paquete.setSignCertificateClient(signCertificate);
                 paquete.setAuthCertificateClient(authCertificate);
@@ -242,7 +246,7 @@ public class  cliente{
         }
         return true;
     }
-    
+
 
 
     public static void Registrar_fichero(){
@@ -256,12 +260,12 @@ public class  cliente{
             String psswd = solicitarPassword();
             String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
 
-            //Creación de socket 
+            //Creación de socket
             SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
 
             //Confección del documento
             //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
-            Path documentPath = Paths.get(solicitarArchivo("documento","./enviotest.png"));   
+            Path documentPath = Paths.get(solicitarArchivo("documento","./enviotest.png"));
             Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
             Debug.info("Se ha creado el archivo");
 
@@ -270,13 +274,13 @@ public class  cliente{
 
 
 
-            
+
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             String inputLine;
 
             while ((inputLine = socketin.readLine()) != null) System.out.println(inputLine);
-  
+
             socket.close();
         } catch (Exception e){
         }
@@ -296,8 +300,8 @@ public class  cliente{
         }else{
             return archivo;
         }
-        
-        
+
+
     }
     private static String solicitarTexto(String mensaje,String def){
         String data=null;
@@ -313,8 +317,8 @@ public class  cliente{
         }else{
             return data ;
         }
-        
-        
+
+
     }
     private static String solicitarPassword(){
         String passwd1;
@@ -332,7 +336,7 @@ public class  cliente{
 
         }
         return null;
-        
+
     }
     public static String menu(){
         String selection = null;
@@ -345,7 +349,7 @@ public class  cliente{
 
             selection = info.readLine();
             selection = selection.toUpperCase();
-            
+
         }
         catch(Throwable e){
             e.printStackTrace();

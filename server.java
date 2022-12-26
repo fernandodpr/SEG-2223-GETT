@@ -42,36 +42,37 @@ public class  server{
     private static String trustStorePath = raizAlmacenes + "Servidor/TrustStoreServidor";
 
     public static void main(String[] args) throws Exception {
+
             SSLServerSocket sslsocket;
             String host =null;
             int port = 8090;
             String[] cipherSuites = null;
             char[] passwdAlmacen = "123456".toCharArray();
             char[] passwdEntrada = "123456".toCharArray();
-    
+
             //KEYSTORE
                 System.setProperty("javax.net.ssl.keyStore", keyStorePath);
                 System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
                 System.setProperty("javax.net.ssl.keyStorePassword", "123456");
-    
+
             //TRUSTSTORE
                 System.setProperty("javax.net.ssl.trustStore", trustStorePath);
                 System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
                 System.setProperty("javax.net.ssl.trustStorePassword", "123456");
-    
-    
+
+            //Variables
             String[] cipherSuitesHabilitadas={"A"};
             SSLSocketFactory factory = null;
             SSLContext sslContext;
             KeyManagerFactory kmf;
-            KeyStore ksKeyStore;
+            KeyStore ksKeyStore = null;
             TrustManagerFactory tmf;
             KeyStore ksTrustStore;
             SSLServerSocketFactory sslServerSocketFactory = null;
             ServerSocketFactory serverSocketFactory = null;
             SSLServerSocket sslServerSocket = null;
-    
-            ksKeyStore  = KeyStore.getInstance("JCEKS");
+
+
             try {
                 BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
                 //Inicializo el KeyStore
@@ -87,10 +88,11 @@ public class  server{
                 tmf.init(ksTrustStore);
 
                 //Configuración del contexto SSL
-                sslContext = SSLContext.getInstance("TLS");
+                sslContext = SSLContext.getInstance("TLSv1.3");
+                //sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
-                
-                serverSocketFactory = sslContext.getServerSocketFactory();          
+
+                serverSocketFactory = sslContext.getServerSocketFactory();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -101,25 +103,26 @@ public class  server{
 
 	try{
 
-        
+
         sslServerSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(port);
         sslServerSocket.setNeedClientAuth(true);
 
         while(true){
 
-          
+
             Socket socket = sslServerSocket.accept();
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
 
             Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-            
+
             Debug.info("Esta es la instruccion recibida:  "+paqueteRecibido.getInstruccion());
 
             switch (paqueteRecibido.getInstruccion().substring(0,3)) {
-                
+
                 case "GET":
                     Debug.info("La instrucción es de tipo GET.");
+                    //getDocument("GET",ksKeyStore);
                     break;
                 case "PUT":
                     Debug.info("La instrucción es de tipo PUT.");
@@ -141,33 +144,33 @@ public class  server{
         return;
     }
 
-      
+
     }
     private static void definirRevocacionOCSPStapling_Metodo1(){
     	//
     	//  Metodo 1: Con URL en el campo AIA del certificado del servidor
     	//
-    	    	
+
 	    System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
 		System.setProperty("jdk.tls.stapling.responderOverride","false");
 
         //  Cambios en el certificado del servidor:
         //      En la seccion [server_ext] del fichero root-ca.conf), añadir ñla siguiente linea
-        //  
+        //
             //      authorityInfoAccess= OCSP; URI:http://localhost:9080
         //
             //   Luego volver a firmar el certificado e importarlo al keyStore del server
 
 	}
 
-    private static void definirRevocacionOCSPStapling_Metodo2(){    		    
+    private static void definirRevocacionOCSPStapling_Metodo2(){
     	//
     	//  Metodo 2: Con URL en el codigo java del server  (aqui)
     	//
-    
+
     		System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
 	  	System.setProperty("jdk.tls.stapling.responderOverride","true");
-		System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.0.50:9080");		
+		System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.0.50:9080");
 		System.setProperty("jdk.tls.stapling.ignoreExtensions", "true");
     }
     private void printsslServerSocketData(SSLServerSocket sslServerSocket){
@@ -182,13 +185,13 @@ public class  server{
          String[] supportedProtocols = sslServerSocket.getSupportedProtocols();
                 for (int i = 0; i < supportedProtocols.length; i++)
                     Debug.info(i+"    "+supportedProtocols[i]);
-                    
-                    
+
+
         Debug.info("******** CypherSuites Habilitadas **********");
         String[] enabledCipherSuites = sslServerSocket.getEnabledCipherSuites();
             for (int i = 0; i < enabledCipherSuites.length; i++)
                 Debug.info(i+"    "+enabledCipherSuites[i]);
-        
+
         Debug.info("******** getEnabledProtocols **********");
         String[] enabledProtocols = sslServerSocket.getEnabledProtocols();
         for (int i = 0; i < enabledProtocols.length; i++)
@@ -199,14 +202,14 @@ public class  server{
     private static void putDocument(Paquete paqueteRecibido, KeyStore keyStore){
         try{
             Debug.info("Entramos en la secuencia de PUT");
-            
+
             //Verificar el certificado certFirmac
                 java.security.cert.Certificate signCertificateClient = paqueteRecibido.getSignCertificateClient();
                 //IMPORTANTE CAMBIAR ESTO ANTES DE SEGUIR ADELANTE
                 //TODO: Cambiar esta parte del código
-                Debug.warn("Es necesario cambiar esto en el código.");
-                java.security.cert.Certificate authCertificateClient = paqueteRecibido.getSignCertificateClient();
-                
+                Debug.warn("Es necesario cambiar esto en el código.");//aqui no deberia conseguir el authCert?? y no el sing?
+                java.security.cert.Certificate authCertificateClient = paqueteRecibido.getAuthCertificateClient();
+
                 if(verificarCertSign(signCertificateClient,authCertificateClient)){
                     Debug.info("El certificado ha sido validado");
                 }else{
@@ -217,29 +220,33 @@ public class  server{
                         //TODO: handle exception
                     }
                 }
+
             //Desencriptar el documento
                 //Es necesario aceder a los datos del keystore para poder acceder a la privada de auth
-                    String alias = "server-sign (servidor-sub ca)"; //TODO: Hay que cambiar esto!!
+                    String alias = "server-sign (servidor-sub ca)"; //TODO: Hay que cambiar esto!! creo que deberiamos pedirlo al iniciarlo
                     //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                     PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
 
                 if(paqueteRecibido.getArchivo().isCifrado()){
-                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
+                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA/ECB/PKCS1Padding"); //Se descrifra la clave K
                     Debug.info("Se ha desencriptado la clave K");
-                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"Algoritmo", false); 
+                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding", false);
                     Debug.info("Se ha desencriptado el documento");
+
+                    //prueba
+                    guardaDocumentoLimpio(paqueteRecibido.getArchivo());
+
                 }else{
                     Debug.warn("El documento ya estaba desencriptado");
                 }
             //Verificar la firma  //TODO: Estaparte no funciona, hay que arreglarla
-                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificateClient(),"SHA256withRSA",true) || true){ //TODO: Quitar ese or, era para poder continuar desarrollando
+                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificateClient(),"SHA256withRSA",false) ){ //TODO: Quitar ese or, era para poder continuar desarrollando
                     Debug.warn("La firma del documento es correcta.");
                 }else{
                     Debug.warn("La verificación de la firma ha fallado");
-
                 }
             //Se crea el número de identificación del documento
-                int identificador =secuenciaNumerica(); 
+                int identificador =secuenciaNumerica();
                 paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
             // Se identifica el propietario del documento
                 paqueteRecibido.getArchivo().setIdPropietario("Paco Jones"); //TODO: Cambiar esto
@@ -249,7 +256,7 @@ public class  server{
                 java.security.cert.Certificate signCert = keyStore.getCertificate(alias);
                 paqueteRecibido.getArchivo().firmar(signPrivateKey,"SHA256withRSA",false);
                 Debug.info("Se ha firmado id Registro, id Propietario, documento, firmaDoc");
-            //Se Cifra de nuevo el archivo para poder guardarlo  //TODO: 
+            //Se Cifra de nuevo el archivo para poder guardarlo  //TODO:
                 alias = "almacenCifrado";
                 SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
                 paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false);
@@ -257,7 +264,7 @@ public class  server{
             //Se guarda el documento en un fichero con el nombre correspondiente
                 guardaDocumento(paqueteRecibido.getArchivo());
                 Debug.info("Se ha guardado el archivo");
-            
+
 
             // Respuesta al cliente
                 Paquete respuesta = new Paquete();
@@ -268,13 +275,30 @@ public class  server{
                 respuesta.setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
 
 
-                
+
             }catch (Exception e){
                 e.printStackTrace();
             }
 
             return;
+
+          }
+
+
+    /*
+    private static Paquete getDocument(String nameFile, KeyStore keyStore){
+      Paquete paquete;
+        try{
+            Debug.info("Entramos en la secuencia de GET");
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            return paquete;
     }
+*/
+
 
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
         //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
@@ -322,11 +346,11 @@ public class  server{
             fw.write(String.valueOf(number));
         } catch (IOException e) {
         e.printStackTrace();
-        }  
+        }
 
-            
+
         return number;
-    } 
+    }
     private static void guardaDocumento(Archivo documento){
         try {
             //TODO: Crear el filepath
@@ -335,7 +359,20 @@ public class  server{
             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(documento);
             objectOut.close();
- 
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    private static void guardaDocumentoLimpio(Archivo documento){
+        try {
+            //TODO: Crear el filepath
+            String filepath ="prueba.txt";
+            FileOutputStream fileOut = new FileOutputStream(filepath);
+
+            fileOut.write(documento.getDocumento());
+            fileOut.close();
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }

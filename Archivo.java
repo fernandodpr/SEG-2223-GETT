@@ -6,6 +6,7 @@ import java.net.*;
 import java.security.*;
 import java.security.spec.*;
 import javax.crypto.*;
+import javax.crypto.spec.*;
 import java.lang.*;
 
 public class  Archivo implements Serializable  {
@@ -90,7 +91,7 @@ public class  Archivo implements Serializable  {
 		signer.initSign(privateKey);
 		byte[] firma = null;
     	//byte   bloque[]         = new byte[1024];
-    	
+
 		Debug.info("Se ha firmado el archivo: "+ this.nombreDocumento + "");
 		if(cliente){
 			signer.update(this.documento);
@@ -112,35 +113,58 @@ public class  Archivo implements Serializable  {
 		//Hay que cifrar this.documento
 		Cipher cipher = Cipher.getInstance (algoritmo);
 		cipher.init (Cipher.ENCRYPT_MODE, key);
-		
+
 		this.documento = cipher.doFinal (this.documento);
 		this.cifrado = true;
 
-		
-		
-		
+
+
+
 		return;
 	}
 	public void descifrar(SecretKey key,String algoritmo,boolean cliente) throws Exception {
 		//Hay que descifrar this.documento
+		try{
+			IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+			Cipher cipher = Cipher.getInstance(algoritmo);
+			cipher.init(Cipher.DECRYPT_MODE,key,iv);
+
+			this.documento = cipher.doFinal(this.documento);
+
+			if(cliente){
+				Debug.info("Se ha descifrado del cliente de: "+ this.nombreDocumento);
+			}else{
+				Debug.info("Se ha descifrado del registrador de: "+ this.nombreDocumento);
+			}
+
+			this.cifrado = false;
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+
 		return;
 	}
 
 	public boolean verificar(java.security.cert.Certificate publicKey,String algoritmo,boolean cliente) throws Exception {
-		Signature verifier=Signature.getInstance(algoritmo);
-		verifier.initVerify(publicKey);
-		verifier.update(this.documento);
-		boolean resultado = false;
+		try{
+			Signature verifier=Signature.getInstance(algoritmo);
+			verifier.initVerify(publicKey);
+			verifier.update(this.documento);
+			boolean resultado = false;
 
-		if(cliente){
-			
-			resultado = verifier.verify(this.firma);
-			Debug.info("Se ha comprobado la firma del cliente de: "+ this.nombreDocumento + " con resultado: "+ resultado);
+			if(cliente){
 
-		}else{
-			resultado = verifier.verify(this.firma_registrador);
-			Debug.info("Se ha comprobado la firma del registrador de: "+ this.nombreDocumento + " con resultado: "+ resultado);
+				resultado = verifier.verify(this.firma);
+				Debug.info("Se ha comprobado la firma del cliente de: "+ this.nombreDocumento + " con resultado: "+ resultado);
 
+			}else{
+				resultado = verifier.verify(this.firma_registrador);
+				Debug.info("Se ha comprobado la firma del registrador de: "+ this.nombreDocumento + " con resultado: "+ resultado);
+
+			}
+
+		}catch(Exception e){
+			e.printStackTrace();
 		}
 
 		return resultado;

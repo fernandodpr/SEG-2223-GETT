@@ -97,7 +97,7 @@ public class  Paquete implements Serializable {
 	public SecretKey getClaveK(){
 		SecretKey originalKey = new SecretKeySpec(claveK, 0, claveK.length, "AES");
 		return originalKey;
-		
+
 	}
 
 	public void setArchivo(Archivo archivo) {
@@ -124,7 +124,7 @@ public class  Paquete implements Serializable {
 	public void descifrarClaveK(PrivateKey privKey,String algoritmo) throws Exception {
 		//Hay que descifrar this.claveK
 		Cipher cipher = Cipher.getInstance(algoritmo);//RSA/ECB/PKCS1Padding
-        cipher.init(Cipher.DECRYPT_MODE, privKey);
+    cipher.init(Cipher.DECRYPT_MODE, privKey);
 		this.claveK=cipher.doFinal(this.claveK);
 		return;
 
@@ -135,6 +135,6 @@ public class  Paquete implements Serializable {
         this.instruccion=instruccion;
 	}
 	public Paquete() {
-        
+
     }
 }
