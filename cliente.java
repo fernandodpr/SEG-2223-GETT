@@ -14,6 +14,7 @@ import java.io.*;
 import java.security.*;
 import java.security.spec.*;
 import javax.crypto.*;
+import javax.crypto.spec.*;
 import java.lang.*;
 import java.io.File;
 
@@ -148,7 +149,7 @@ public class  cliente{
                 System.out.println("******** CypherSuites Disponibles **********");
                 cipherSuites = factory.getSupportedCipherSuites();
                 for (int i = 0; i < cipherSuites.length; i++){
-                    if(cipherSuites[i].contains("TLS_AES_") || cipherSuites[i].contains("TLS_CHACHA")){
+                    if(cipherSuites[i].contains("TLS_AES") || cipherSuites[i].contains("TLS_CHACHA")){
                         System.out.println(i+"    "+cipherSuites[i]);
                     }
                 }
@@ -207,7 +208,7 @@ public class  cliente{
 
             //1. Se firma el archivo
                 //Aplicamos el metodo firma de Archivo
-                doc.firmar(signPrivateKey,"SHA256withRSA",true);
+                doc.firmar(signPrivateKey,"SHA512withRSA",true);
 
             //2. Se cifra la información de Archivo
                 // Crea generador de claves
@@ -216,19 +217,16 @@ public class  cliente{
                     keyGen.init (192);
                 // Generamos una clave
                     SecretKey claveK = keyGen.generateKey();
-                //Se cifra el Archivo
-                    doc.cifrar(claveK,"AES/CBC/PKCS5Padding",true);
+                //Se cifra el Archivo (simetrico)
+                    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+                    doc.cifrar(claveK,"AES/CBC/PKCS5Padding",true,iv);
                     Debug.info("Se ha cifrado el archivo.");
                 //Establecemos en el paquete la calve K
                     paquete.setClaveK(claveK);
                 //Ciframos la clave K con auth del Server
                     SSLSession session = socket.getSession();
-                    alias = "server_auth";
                     java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
-                    //X509Certificate certi = (X509Certificate) trustStore.getCertificate(alias);
-                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA/ECB/PKCS1Padding");
-                    //paquete.cifrarClaveK(certi.getPublicKey(),"RSA/ECB/PKCS1Padding");
-
+                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA");
                     Debug.info("Se ha cifrado la clave K.");
 
             //Se completa la información del paquete

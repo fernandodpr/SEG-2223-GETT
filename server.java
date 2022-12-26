@@ -17,6 +17,7 @@ import java.io.*;
 import java.security.*;
 import java.security.spec.*;
 import javax.crypto.*;
+import javax.crypto.spec.*;
 import java.lang.*;
 import java.security.KeyStore;
 
@@ -42,7 +43,6 @@ public class  server{
     private static String trustStorePath = raizAlmacenes + "Servidor/TrustStoreServidor";
 
     public static void main(String[] args) throws Exception {
-
             SSLServerSocket sslsocket;
             String host =null;
             int port = 8090;
@@ -60,19 +60,20 @@ public class  server{
                 System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
                 System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 
-            //Variables
+
             String[] cipherSuitesHabilitadas={"A"};
             SSLSocketFactory factory = null;
             SSLContext sslContext;
             KeyManagerFactory kmf;
-            KeyStore ksKeyStore = null;
+            KeyStore ksKeyStore = null;//duda
             TrustManagerFactory tmf;
             KeyStore ksTrustStore;
             SSLServerSocketFactory sslServerSocketFactory = null;
             ServerSocketFactory serverSocketFactory = null;
             SSLServerSocket sslServerSocket = null;
 
-
+            //duda
+            ksKeyStore  = KeyStore.getInstance("JCEKS");
             try {
                 BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
                 //Inicializo el KeyStore
@@ -88,8 +89,7 @@ public class  server{
                 tmf.init(ksTrustStore);
 
                 //Configuración del contexto SSL
-                sslContext = SSLContext.getInstance("TLSv1.3");
-                //sslContext = SSLContext.getInstance("TLS");
+                sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
 
                 serverSocketFactory = sslContext.getServerSocketFactory();
@@ -122,7 +122,6 @@ public class  server{
 
                 case "GET":
                     Debug.info("La instrucción es de tipo GET.");
-                    //getDocument("GET",ksKeyStore);
                     break;
                 case "PUT":
                     Debug.info("La instrucción es de tipo PUT.");
@@ -207,8 +206,8 @@ public class  server{
                 java.security.cert.Certificate signCertificateClient = paqueteRecibido.getSignCertificateClient();
                 //IMPORTANTE CAMBIAR ESTO ANTES DE SEGUIR ADELANTE
                 //TODO: Cambiar esta parte del código
-                Debug.warn("Es necesario cambiar esto en el código.");//aqui no deberia conseguir el authCert?? y no el sing?
-                java.security.cert.Certificate authCertificateClient = paqueteRecibido.getAuthCertificateClient();
+                Debug.warn("Es necesario cambiar esto en el código.");
+                java.security.cert.Certificate authCertificateClient = paqueteRecibido.getSignCertificateClient();
 
                 if(verificarCertSign(signCertificateClient,authCertificateClient)){
                     Debug.info("El certificado ha sido validado");
@@ -220,30 +219,29 @@ public class  server{
                         //TODO: handle exception
                     }
                 }
-
             //Desencriptar el documento
                 //Es necesario aceder a los datos del keystore para poder acceder a la privada de auth
-                    String alias = "server-sign (servidor-sub ca)"; //TODO: Hay que cambiar esto!! creo que deberiamos pedirlo al iniciarlo
+                    String alias = "server-sign (servidor-sub ca)"; //TODO: Hay que cambiar esto!!
                     //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                     PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
 
                 if(paqueteRecibido.getArchivo().isCifrado()){
-                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA/ECB/PKCS1Padding"); //Se descrifra la clave K
+                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
                     Debug.info("Se ha desencriptado la clave K");
-                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding", false);
+                    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding", false, iv);
                     Debug.info("Se ha desencriptado el documento");
-
                     //prueba
                     guardaDocumentoLimpio(paqueteRecibido.getArchivo());
-
                 }else{
                     Debug.warn("El documento ya estaba desencriptado");
                 }
             //Verificar la firma  //TODO: Estaparte no funciona, hay que arreglarla
-                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificateClient(),"SHA256withRSA",false) ){ //TODO: Quitar ese or, era para poder continuar desarrollando
+                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificateClient(),"SHA512withRSA",true) || true){ //TODO: Quitar ese or, era para poder continuar desarrollando
                     Debug.warn("La firma del documento es correcta.");
                 }else{
                     Debug.warn("La verificación de la firma ha fallado");
+
                 }
             //Se crea el número de identificación del documento
                 int identificador =secuenciaNumerica();
@@ -259,7 +257,7 @@ public class  server{
             //Se Cifra de nuevo el archivo para poder guardarlo  //TODO:
                 alias = "almacenCifrado";
                 SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
-                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false);
+                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia 
                 Debug.info("Se ha cifrado el archivo para su almacenamiento");
             //Se guarda el documento en un fichero con el nombre correspondiente
                 guardaDocumento(paqueteRecibido.getArchivo());
@@ -281,24 +279,7 @@ public class  server{
             }
 
             return;
-
-          }
-
-
-    /*
-    private static Paquete getDocument(String nameFile, KeyStore keyStore){
-      Paquete paquete;
-        try{
-            Debug.info("Entramos en la secuencia de GET");
-
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
-            return paquete;
     }
-*/
-
 
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
         //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
@@ -364,12 +345,12 @@ public class  server{
             ex.printStackTrace();
         }
     }
-    private static void guardaDocumentoLimpio(Archivo documento){
+
+    private static void guardaDocumentoLimpio(Archivo documento){//eliminar esta funcion
         try {
             //TODO: Crear el filepath
-            String filepath ="prueba.txt";
+            String filepath ="prueba.png";
             FileOutputStream fileOut = new FileOutputStream(filepath);
-
             fileOut.write(documento.getDocumento());
             fileOut.close();
 

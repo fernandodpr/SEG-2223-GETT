@@ -109,10 +109,15 @@ public class  Archivo implements Serializable  {
 		}
 
 	}
-	public void cifrar(SecretKey key,String algoritmo,boolean cliente) throws Exception {
+	public void cifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iv) throws Exception {
 		//Hay que cifrar this.documento
 		Cipher cipher = Cipher.getInstance (algoritmo);
-		cipher.init (Cipher.ENCRYPT_MODE, key);
+
+		if(iv!=null){
+			cipher.init (Cipher.ENCRYPT_MODE, key, iv);
+		}else{
+			cipher.init (Cipher.ENCRYPT_MODE, key);
+		}
 
 		this.documento = cipher.doFinal (this.documento);
 		this.cifrado = true;
@@ -122,49 +127,38 @@ public class  Archivo implements Serializable  {
 
 		return;
 	}
-	public void descifrar(SecretKey key,String algoritmo,boolean cliente) throws Exception {
+	public void descifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iv) throws Exception {
 		//Hay que descifrar this.documento
-		try{
-			IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-			Cipher cipher = Cipher.getInstance(algoritmo);
-			cipher.init(Cipher.DECRYPT_MODE,key,iv);
 
-			this.documento = cipher.doFinal(this.documento);
+		Cipher cipher = Cipher.getInstance(algoritmo);
 
-			if(cliente){
-				Debug.info("Se ha descifrado del cliente de: "+ this.nombreDocumento);
-			}else{
-				Debug.info("Se ha descifrado del registrador de: "+ this.nombreDocumento);
-			}
-
-			this.cifrado = false;
-		} catch (Exception e){
-			e.printStackTrace();
+		if(iv!=null){
+			cipher.init (Cipher.DECRYPT_MODE, key, iv);
+		}else{
+			cipher.init (Cipher.DECRYPT_MODE, key);
 		}
+
+		this.documento=cipher.doFinal (this.documento);
+		this.cifrado = false;
 
 		return;
 	}
 
 	public boolean verificar(java.security.cert.Certificate publicKey,String algoritmo,boolean cliente) throws Exception {
-		try{
-			Signature verifier=Signature.getInstance(algoritmo);
-			verifier.initVerify(publicKey);
-			verifier.update(this.documento);
-			boolean resultado = false;
+		Signature verifier=Signature.getInstance(algoritmo);
+		verifier.initVerify(publicKey);
+		verifier.update(this.documento);
+		boolean resultado = false;
 
-			if(cliente){
+		if(cliente){
 
-				resultado = verifier.verify(this.firma);
-				Debug.info("Se ha comprobado la firma del cliente de: "+ this.nombreDocumento + " con resultado: "+ resultado);
+			resultado = verifier.verify(this.firma);
+			Debug.info("Se ha comprobado la firma del cliente de: "+ this.nombreDocumento + " con resultado: "+ resultado);
 
-			}else{
-				resultado = verifier.verify(this.firma_registrador);
-				Debug.info("Se ha comprobado la firma del registrador de: "+ this.nombreDocumento + " con resultado: "+ resultado);
+		}else{
+			resultado = verifier.verify(this.firma_registrador);
+			Debug.info("Se ha comprobado la firma del registrador de: "+ this.nombreDocumento + " con resultado: "+ resultado);
 
-			}
-
-		}catch(Exception e){
-			e.printStackTrace();
 		}
 
 		return resultado;
