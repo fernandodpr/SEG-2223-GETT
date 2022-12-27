@@ -208,6 +208,10 @@ public class  cliente{
 
             //1. Se firma el archivo
                 //Aplicamos el metodo firma de Archivo
+                java.security.cert.Certificate[] localcerts = socket.getSession().getLocalCertificates();
+                X509Certificate localcert = (X509Certificate)localcerts[0];
+                doc.setIdPropietario((String)localcert.getSubjectDN().getName());
+                Debug.info("Propietario: "+doc.getIdPropietario());
                 doc.firmar(signPrivateKey,"SHA512withRSA",true);
 
             //2. Se cifra la información de Archivo
@@ -238,6 +242,10 @@ public class  cliente{
                 outputSocketObject.writeObject(paquete);
                 outputSocketObject.flush();
                 Debug.info("Se ha enviado la operación:   "+"PUT:"+doc.getNombreDocumento());
+
+
+                //cerra ObjectOutputStream
+                //outputSocketObject.close();
 
         }catch(Exception e){
         e.printStackTrace();
@@ -274,10 +282,17 @@ public class  cliente{
 
 
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
 
-            String inputLine;
+            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
+            if(paqueteRecibido.getInstruccion().substring(0,13).equals("PUT:RESPONSE:")) Debug.info("Ha llegado la respuesta");
+            if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
+            //proceso de obtencion de PUT RESPONSE
+            //Verificar certificado CertFirmaS
+            //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
+            // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
 
-            while ((inputLine = socketin.readLine()) != null) System.out.println(inputLine);
+
 
             socket.close();
         } catch (Exception e){

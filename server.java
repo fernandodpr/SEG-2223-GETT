@@ -126,6 +126,9 @@ public class  server{
                 case "PUT":
                     Debug.info("La instrucción es de tipo PUT.");
                     putDocument(paqueteRecibido,ksKeyStore);
+                    //cerrar inputSocketObject
+                    //inputSocketObject.close();
+                    responsePutDocument(socket,paqueteRecibido,ksKeyStore);
                     break;
                 default:
                     break;
@@ -247,7 +250,8 @@ public class  server{
                 int identificador =secuenciaNumerica();
                 paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
             // Se identifica el propietario del documento
-                paqueteRecibido.getArchivo().setIdPropietario("Paco Jones"); //TODO: Cambiar esto
+                //paqueteRecibido.getArchivo().setIdPropietario("Paco Jones"); //TODO: Cambiar esto
+                Debug.info("Id propietario:"+paqueteRecibido.getArchivo().getIdPropietario());
             //Se firman id Registro, id Propietario, documento, firmaDoc
                 alias = "server-sign (servidor-sub ca)";
                 PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
@@ -256,21 +260,11 @@ public class  server{
             //Se Cifra de nuevo el archivo para poder guardarlo  //TODO:
                 alias = "almacenCifrado";
                 SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
-                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia 
+                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
                 Debug.info("Se ha cifrado el archivo para su almacenamiento");
             //Se guarda el documento en un fichero con el nombre correspondiente
-                guardaDocumento(paqueteRecibido.getArchivo());
+                paqueteRecibido.guardaDocumento(null);
                 Debug.info("Se ha guardado el archivo");
-
-
-            // Respuesta al cliente
-                Paquete respuesta = new Paquete();
-
-                respuesta.setInstruccion("Hola");
-                respuesta.setIdPropietario(paqueteRecibido.getArchivo().getIdPropietario());
-                respuesta.setSignCertificateServer(signCert);
-                respuesta.setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
-
 
 
             }catch (Exception e){
@@ -279,6 +273,49 @@ public class  server{
 
             return;
     }
+    private static void responsePutDocument(Socket socket, Paquete paqueteRecibido, KeyStore keyStore){
+        try{
+                ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
+                Debug.info("RESPUESTA");
+                Debug.info("Inicia la respuesta al cliente");
+
+            // Respuesta al cliente
+                Paquete respuesta = new Paquete();
+                if (paqueteRecibido.getArchivo().getFirma_registrador()!=null) Debug.info("Tiene bien la firma");
+                respuesta.setInstruccion("PUT:RESPONSE:1"+paqueteRecibido.getArchivo().getNombreDocumento());
+                //creamos un archivo vacio
+                Archivo archivo = new Archivo(null,paqueteRecibido.getArchivo().getNombreDocumento());
+                respuesta.setArchivo(archivo);
+                //le damos la firma de registrador
+                respuesta.getArchivo().setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
+                //le damos idpropietario
+                String propietario = (String)paqueteRecibido.getArchivo().getIdPropietario();
+                respuesta.getArchivo().setIdPropietario(propietario);
+                //le damos idregistro
+                respuesta.getArchivo().setNumeroRegistro(paqueteRecibido.getArchivo().getNumeroRegistro());
+                //le damos el certificado de firma del server; PROBLEMA
+                String alias = "server-sign (servidor-sub ca)";
+                PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
+                java.security.cert.Certificate signCertificate = keyStore.getCertificate(alias);
+                respuesta.setSignCertificateServer(signCertificate);
+
+                //Enviamos el paquete
+                outputSocketObject.writeObject(respuesta);
+                outputSocketObject.flush();
+                Debug.info("Se ha respondido la operación:   "+"PUT:RESPONSE:"+archivo.getNombreDocumento());
+
+
+
+                outputSocketObject.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            return;
+    }
+
+
 
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
         //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
@@ -331,19 +368,7 @@ public class  server{
 
         return number;
     }
-    private static void guardaDocumento(Archivo documento){
-        try {
-            //TODO: Crear el filepath
-            String filepath =String.valueOf(documento.getNumeroRegistro())+"_"+documento.getIdPropietario()+".sig.cif";
-            FileOutputStream fileOut = new FileOutputStream(filepath);
-            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-            objectOut.writeObject(documento);
-            objectOut.close();
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
 
     private static void guardaDocumentoLimpio(Archivo documento){//eliminar este método
         try {

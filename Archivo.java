@@ -146,7 +146,7 @@ public class  Archivo implements Serializable  {
 
 	public boolean verificar(java.security.cert.Certificate publicKey,String algoritmo,boolean cliente) throws Exception {
 		Signature verifier=Signature.getInstance(algoritmo);
-		verifier.initVerify(publicKey);	
+		verifier.initVerify(publicKey);
 		boolean resultado = false;
 
 		if(cliente){

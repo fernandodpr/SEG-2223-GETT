@@ -16,6 +16,8 @@ public class  Paquete implements Serializable {
 	private byte[] claveK;
 	private java.security.cert.Certificate signCertificateClient;
 	private java.security.cert.Certificate authCertificateClient;
+  private java.security.cert.Certificate signCertificateServer;
+
 
 	public java.security.cert.Certificate getAuthCertificateClient() {
 		return this.authCertificateClient;
@@ -35,6 +37,15 @@ public class  Paquete implements Serializable {
 		this.signCertificateClient = signCertificateClient;
 	}
 
+  public java.security.cert.Certificate getSignCertificateServer() {
+    return this.signCertificateServer;
+  }
+
+  public void setSignCertificateServer(java.security.cert.Certificate signCertificateServer) {
+    this.signCertificateServer = signCertificateServer;
+  }
+
+
 
 	public Archivo getArchivo() {
 		return this.archivo;
@@ -48,7 +59,7 @@ public class  Paquete implements Serializable {
 	public SecretKey getClaveK(){
 		SecretKey originalKey = new SecretKeySpec(claveK, 0, claveK.length, "AES");
 		return originalKey;
-		
+
 	}
 
 	public void setArchivo(Archivo archivo) {
@@ -86,6 +97,21 @@ public class  Paquete implements Serializable {
         this.instruccion=instruccion;
 	}
 	public Paquete() {
-        
+
     }
+
+
+    public void guardaDocumento(String filepath){
+  			try {
+  					//TODO: Crear el filepath
+  					if(filepath == null) filepath =String.valueOf(this.archivo.getNumeroRegistro())+"_"+this.archivo.getIdPropietario()+".sig.cif";
+  					FileOutputStream fileOut = new FileOutputStream(filepath);
+  					ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+  					objectOut.writeObject(this.archivo);
+  					objectOut.close();
+
+  			} catch (Exception ex) {
+  					ex.printStackTrace();
+  			}
+  	}
 }
