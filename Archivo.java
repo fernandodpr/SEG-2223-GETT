@@ -146,19 +146,23 @@ public class  Archivo implements Serializable  {
 
 	public boolean verificar(java.security.cert.Certificate publicKey,String algoritmo,boolean cliente) throws Exception {
 		Signature verifier=Signature.getInstance(algoritmo);
-		verifier.initVerify(publicKey);
-		verifier.update(this.documento);
+		verifier.initVerify(publicKey);	
 		boolean resultado = false;
 
 		if(cliente){
-
+			verifier.update(this.documento);
 			resultado = verifier.verify(this.firma);
 			Debug.info("Se ha comprobado la firma del cliente de: "+ this.nombreDocumento + " con resultado: "+ resultado);
 
 		}else{
+			ByteArrayOutputStream firmaServidor = new ByteArrayOutputStream( );
+			firmaServidor.write(this.numeroRegistro);
+			firmaServidor.write(this.idPropietario.getBytes());
+			firmaServidor.write(this.documento);
+			firmaServidor.write(this.firma);
+			verifier.update(firmaServidor.toByteArray());
 			resultado = verifier.verify(this.firma_registrador);
 			Debug.info("Se ha comprobado la firma del registrador de: "+ this.nombreDocumento + " con resultado: "+ resultado);
-
 		}
 
 		return resultado;

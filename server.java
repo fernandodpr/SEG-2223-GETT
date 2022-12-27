@@ -345,7 +345,7 @@ public class  server{
         }
     }
 
-    private static void guardaDocumentoLimpio(Archivo documento){//eliminar esta funcion
+    private static void guardaDocumentoLimpio(Archivo documento){//eliminar este método
         try {
             //TODO: Crear el filepath
             String filepath ="prueba.png";
