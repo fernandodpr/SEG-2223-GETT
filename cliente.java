@@ -279,7 +279,7 @@ public class  cliente{
         try {
             //Solicitud de los datos
             String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
-            String psswd = solicitarPassword();
+            String psswd = solicitarPassword("123456");
             String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
 
             //Creación de socket
@@ -342,7 +342,7 @@ public class  cliente{
         try {
             //Solicitud de los datos
             String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
-            String psswd = solicitarPassword();
+            String psswd = solicitarPassword("123456");
             String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
 
             //Creación de socket
@@ -389,12 +389,12 @@ public class  cliente{
 
 
     }
-    private static String solicitarPassword(){
+    private static String solicitarPassword(String def){
         String passwd1;
         String passwd2;
         try {
             do{
-                System.out.println("Introduzca la clave del keystore:");
+                System.out.println("Introduzca la clave del keystore  ["+def+"]:");
                 BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
                 passwd1 = consola.readLine();
                 System.out.println("Confirme la clave del keystore:");
