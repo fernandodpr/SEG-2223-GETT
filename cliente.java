@@ -392,8 +392,8 @@ public class  cliente{
 
     }
     private static String solicitarPassword(String def){
-        String passwd1;
-        String passwd2;
+        String passwd1=null;
+        String passwd2=null;
         try {
             do{
                 System.out.println("Introduzca la clave del keystore  ["+def+"]:");
@@ -402,11 +402,15 @@ public class  cliente{
                 System.out.println("Confirme la clave del keystore  ["+def+"]:");
                 passwd2 = consola.readLine();
             }while(!passwd1.equals(passwd2));
-            return passwd1;
         } catch (Exception e) {
           e.printStackTrace();
         }
-        return null;
+        if(passwd1.length()<1){
+            return def;
+        }else{
+            return passwd1;
+        }
+
 
     }
     public static String menu(){
