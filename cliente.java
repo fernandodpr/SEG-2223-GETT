@@ -296,7 +296,7 @@ public class  cliente{
             //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
 
             storeHash(doc.getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
-
+            deleteFile(documentPath);
 
             socket.close();
         } catch (Exception e){
@@ -398,5 +398,13 @@ public class  cliente{
         }
 
 
+    }
+    private static void deleteFile(Path documentPath){
+        
+    if (documentPath.toFile().delete()) { 
+      System.out.println("Archivo eliminado: " + documentPath.toFile().getName());
+    } else {
+      System.out.println("Fallo al eliminar el archivo");
+    } 
     }
 }
