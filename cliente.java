@@ -312,7 +312,7 @@ public class  cliente{
             //Es un poco el código que habría que meter en donde se gestione una de las peticiones exitosas
             //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
 
-            storeHash(doc.getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
+            storeHash(paqueteRecibido.getArchivo().getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             deleteFile(documentPath);
 
             socket.close();

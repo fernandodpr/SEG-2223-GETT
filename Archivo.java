@@ -170,10 +170,10 @@ public class  Archivo implements Serializable  {
 	}
 
 	public String getHash() {
-		
+
 		StringBuilder hexString = new StringBuilder(2 * this.documento.length);
 		for (int i = 0; i < this.documento.length; i++) {
-			
+
 			String hex = Integer.toHexString(0xff & this.documento[i]);
 			if(hex.length() == 1) {
 				hexString.append('0');
@@ -186,7 +186,11 @@ public class  Archivo implements Serializable  {
 	public void guardaDocumento(String filepath){
 		try {
 			//TODO: Crear el filepath
-			if(filepath == null) filepath =String.valueOf(this.getNumeroRegistro())+"_"+this.getIdPropietario()+".sig.cif";
+			if(filepath == null) {
+				String aux = this.getIdPropietario().split(",")[0];
+				aux = aux.substring(3);
+				filepath = String.valueOf(this.getNumeroRegistro())+"_"+aux+".sig.cif";
+			}
 			FileOutputStream fileOut = new FileOutputStream(filepath);
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 			objectOut.writeObject(this);

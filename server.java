@@ -73,7 +73,7 @@ public class  server{
             SSLSocketFactory factory = null;
             SSLContext sslContext;
             KeyManagerFactory kmf;
-            KeyStore ksKeyStore = null;//duda
+            KeyStore ksKeyStore = null;
             TrustManagerFactory tmf;
             KeyStore ksTrustStore;
             SSLServerSocketFactory sslServerSocketFactory = null;
@@ -243,8 +243,6 @@ public class  server{
                     IvParameterSpec iv = new IvParameterSpec(new byte[16]);
                     paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding", false, iv);
                     Debug.info("Se ha desencriptado el documento");
-                    //prueba
-                    guardaDocumentoLimpio(paqueteRecibido.getArchivo());
                 }else{
                     Debug.warn("El documento ya estaba desencriptado");
                 }
@@ -260,7 +258,7 @@ public class  server{
                 paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
             // Se identifica el propietario del documento
                 //paqueteRecibido.getArchivo().setIdPropietario("Paco Jones"); //TODO: Cambiar esto
-                
+
                 String propietarioString = (String)paqueteRecibido.getArchivo().getIdPropietario();
                 propietarioString = propietarioString.split(",")[0];
                 propietarioString = propietarioString.substring(3);
@@ -309,9 +307,6 @@ public class  server{
                 respuesta.getArchivo().setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
                 //le damos idpropietario
                 String propietario = (String)paqueteRecibido.getArchivo().getIdPropietario();
-                //duda
-                //propietario = propietario.split(",")[0];
-                //propietario = propietario.substring(3);
                 respuesta.getArchivo().setIdPropietario(propietario);
                 //le damos idregistro
                 respuesta.getArchivo().setNumeroRegistro(paqueteRecibido.getArchivo().getNumeroRegistro());
@@ -343,7 +338,7 @@ public class  server{
         archivos.forEach(x -> Debug.info(x));
         Path documentPath = Paths.get(archivos.get(0));
         Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
-        
+
 
         }catch(Exception e){
           e.printStackTrace();
@@ -402,18 +397,7 @@ public class  server{
     }
 
 
-    private static void guardaDocumentoLimpio(Archivo documento){//eliminar este método
-        try {
-            //TODO: Crear el filepath
-            String filepath ="prueba.png";
-            FileOutputStream fileOut = new FileOutputStream(filepath);
-            fileOut.write(documento.getDocumento());
-            fileOut.close();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     private static List<String> buscaArchivos(Path path, String filename)
         throws IOException {
 
