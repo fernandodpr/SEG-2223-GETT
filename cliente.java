@@ -17,7 +17,10 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.lang.*;
 import java.io.File;
+import java.util.List;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.lang.ProcessHandle.Info;
 import java.security.KeyStore;
 import javax.net.ssl.KeyManagerFactory;
@@ -49,7 +52,7 @@ public class  cliente{
                     menu_registro();
                     break;
                 case "B":
-
+                    menu_peticion();
                     break;
                 case "S":
                     salir = true;
@@ -303,6 +306,68 @@ public class  cliente{
         }
         return;
     }
+    public static void menu_peticion(){
+        try{
+            String filesPath = solicitarTexto("Introduzca el path a la carpeta donde encontrar los archivos enviados:",".");
+            List<String> archivos = buscaArchivos(Paths.get(filesPath), "sentfile");
+            Debug.info("Se han encontrado los siguientes archivos:");
+            String def = "";
+            for(String s:archivos){
+                String[] partes = s.split(".sentfile");
+                Debug.info(partes[0].substring(2));
+                def=partes[0].substring(2);
+            }
+            String file = solicitarTexto("Introduce el número de archivo que deseas recuperar:",def);
+            //file=filesPath+"/"+file+".sentfile";
+            Debug.info("Se va a solicitar el archivo:  "+file);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        
+        try {
+            //Solicitud de los datos
+            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
+            String psswd = solicitarPassword();
+            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
+
+            //Creación de socket
+            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
+
+            //Confección del documento
+            //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
+            Path documentPath = Paths.get(solicitarArchivo("documento","./enviotest.png"));
+            Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
+            Debug.info("Se ha creado el archivo");
+
+
+            boolean resultado = registrarDocumento(socket,keyStorePath,doc,trustStorePath,psswd);
+
+            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
+
+            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
+            if(paqueteRecibido.getInstruccion().substring(0,13).equals("PUT:RESPONSE:")) Debug.info("Ha llegado la respuesta");
+            if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
+            //proceso de obtencion de PUT RESPONSE
+            //Verificar certificado CertFirmaS
+            //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
+            // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
+
+
+            //Voy a hacer el hash
+            //Supongo que aqui la instruccion y el numero del error esta gestionado
+            //Es un poco el código que habría que meter en donde se gestione una de las peticiones exitosas
+            //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
+
+            storeHash(doc.getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
+            deleteFile(documentPath);
+
+            socket.close();
+        } catch (Exception e){
+        }
+        return;
+    }
     private static String solicitarArchivo(String tipo,String def){
         String archivo=null;
         try {
@@ -406,5 +471,31 @@ public class  cliente{
     } else {
       System.out.println("Fallo al eliminar el archivo");
     } 
+    }
+
+    public static List<String> buscaArchivos(Path path, String fileExtension)
+        throws IOException {
+
+        //https://mkyong.com/java/how-to-find-files-with-certain-extension-only/
+
+        if (!Files.isDirectory(path)) {
+            throw new IllegalArgumentException("Path must be a directory!");
+        }
+
+        List<String> result;
+
+        try (Stream<Path> walk = Files.walk(path)) {
+            result = walk
+                    .filter(p -> !Files.isDirectory(p))
+                    // this is a path, not string,
+                    // this only test if path end with a certain path
+                    //.filter(p -> p.endsWith(fileExtension))
+                    // convert path to string first
+                    .map(p -> p.toString().toLowerCase())
+                    .filter(f -> f.endsWith(fileExtension))
+                    .collect(Collectors.toList());
+        }
+
+        return result;
     }
 }
