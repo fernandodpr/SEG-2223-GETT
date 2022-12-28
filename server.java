@@ -124,6 +124,7 @@ public class  server{
 
             Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
 
+
             Debug.info("Esta es la instruccion recibida:  "+paqueteRecibido.getInstruccion());
 
             switch (paqueteRecibido.getInstruccion().substring(0,3)) {
@@ -135,8 +136,6 @@ public class  server{
                 case "PUT":
                     Debug.info("La instrucción es de tipo PUT.");
                     putDocument(paqueteRecibido,ksKeyStore);
-                    //cerrar inputSocketObject
-                    //inputSocketObject.close();
                     responsePutDocument(socket,paqueteRecibido,ksKeyStore);
                     break;
                 default:
@@ -229,6 +228,7 @@ public class  server{
                         throw new CertificateException("El certificado de firma es incorrecto");
                     } catch (Exception e) {
                         //TODO: handle exception
+                        e.printStackTrace();
                     }
                 }
             //Desencriptar el documento
@@ -295,11 +295,12 @@ public class  server{
 
             // Respuesta al cliente
                 Paquete respuesta = new Paquete();
+
                 if (paqueteRecibido.getArchivo().getFirma_registrador()!=null) Debug.info("Tiene bien la firma");
                 respuesta.setInstruccion("PUT:RESPONSE:1"+paqueteRecibido.getArchivo().getNombreDocumento());
                 //creamos un archivo vacio
-                Archivo archivo = new Archivo(null,paqueteRecibido.getArchivo().getNombreDocumento());
-                respuesta.setArchivo(archivo);
+                //Archivo archivo = new Archivo(null,paqueteRecibido.getArchivo().getNombreDocumento());
+                respuesta.setArchivo(paqueteRecibido.getArchivo());
                 //le damos la firma de registrador
                 respuesta.getArchivo().setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
                 //le damos idpropietario
@@ -319,7 +320,7 @@ public class  server{
                 //Enviamos el paquete
                 outputSocketObject.writeObject(respuesta);
                 outputSocketObject.flush();
-                Debug.info("Se ha respondido la operación:   "+"PUT:RESPONSE:"+archivo.getNombreDocumento());
+                Debug.info("Se ha respondido la operación:   "+"PUT:RESPONSE:"+respuesta.getArchivo().getNombreDocumento());
 
 
 
@@ -338,9 +339,9 @@ public class  server{
         archivos.forEach(x -> System.out.println(x));
 
         }catch(Exception e){
-
+          e.printStackTrace();
         }
-        
+
     }
 
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
@@ -404,8 +405,8 @@ public class  server{
             fileOut.write(documento.getDocumento());
             fileOut.close();
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
     private static List<String> buscaArchivos(Path path, String filename)

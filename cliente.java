@@ -248,7 +248,7 @@ public class  cliente{
 
 
                 //cerra ObjectOutputStream
-                outputSocketObject.close();
+                //outputSocketObject.close();
 
         }catch(Exception e){
         e.printStackTrace();
@@ -260,12 +260,13 @@ public class  cliente{
             Paquete paquete = new Paquete();
             KeyStore keyStore;
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-            paquete.setInstruccion("GET:"+doc); 
+            paquete.setInstruccion("GET:"+doc);
             outputSocketObject.writeObject(paquete);
             outputSocketObject.flush();
             outputSocketObject.close();
         } catch (Exception e) {
             //TODO: handle exception
+            e.printStackTrace();
         }
         return true;
     }
@@ -316,6 +317,7 @@ public class  cliente{
 
             socket.close();
         } catch (Exception e){
+          e.printStackTrace();
         }
         return;
     }
@@ -338,7 +340,7 @@ public class  cliente{
         }catch (Exception e){
             e.printStackTrace();
         }
-        
+
         try {
             //Solicitud de los datos
             String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
@@ -351,6 +353,7 @@ public class  cliente{
             boolean resultado = solicitudServidor(socket,keyStorePath,file,trustStorePath,psswd);
 
         } catch (Exception e){
+          e.printStackTrace();
         }
         return;
     }
@@ -361,7 +364,7 @@ public class  cliente{
             BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
             archivo = consola.readLine();
         } catch (Exception e) {
-
+          e.printStackTrace();
         }
         if (archivo.length()<4){
             return def;
@@ -378,7 +381,7 @@ public class  cliente{
             BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
             data = consola.readLine();
         } catch (Exception e) {
-
+          e.printStackTrace();
         }
         if (data.length()<4){
             return def;
@@ -396,12 +399,12 @@ public class  cliente{
                 System.out.println("Introduzca la clave del keystore  ["+def+"]:");
                 BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
                 passwd1 = consola.readLine();
-                System.out.println("Confirme la clave del keystore:");
+                System.out.println("Confirme la clave del keystore  ["+def+"]:");
                 passwd2 = consola.readLine();
             }while(!passwd1.equals(passwd2));
             return passwd1;
         } catch (Exception e) {
-
+          e.printStackTrace();
         }
         return null;
 
@@ -437,7 +440,7 @@ public class  cliente{
 		System.setProperty("ocsp.enable",                            "false");
 
     }
-    
+
     private static void storeHash(String hash,String idDoc){
         try {
             Debug.info("Tengo el hash"+hash.substring(0,20)+" y el núnero de registro "+idDoc);
@@ -446,17 +449,18 @@ public class  cliente{
             out.close();
         } catch (Exception e) {
             //TODO: handle exception
+            e.printStackTrace();
         }
 
 
     }
     private static void deleteFile(Path documentPath){
-            
-        if (documentPath.toFile().delete()) { 
+
+        if (documentPath.toFile().delete()) {
         System.out.println("Archivo eliminado: " + documentPath.toFile().getName());
         } else {
         System.out.println("Fallo al eliminar el archivo");
-        } 
+        }
         }
 
     private static List<String> buscaArchivos(Path path, String fileExtension)
@@ -484,8 +488,7 @@ public class  cliente{
 
         return result;
     }
-    
+
 
 
 }
-
