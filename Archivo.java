@@ -8,6 +8,9 @@ import java.security.spec.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.lang.*;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.nio.file.Files;
 
 public class  Archivo implements Serializable  {
 	private int numeroRegistro;
@@ -19,7 +22,7 @@ public class  Archivo implements Serializable  {
     private byte[] firma;
     private byte[] firma_registrador;
 
-	public Object getIdPropietario() {
+	public String getIdPropietario() {
 		return this.idPropietario;
 	}
 
@@ -128,9 +131,9 @@ public class  Archivo implements Serializable  {
 
 		return;
 	}
-	public void descifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iv) throws Exception {
+	public void descifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iviDono) throws Exception {
 		//Hay que descifrar this.documento
-
+		IvParameterSpec iv = new IvParameterSpec(new byte[16]);
 		Cipher cipher = Cipher.getInstance(algoritmo);
 
 		if(iv!=null){
@@ -187,6 +190,9 @@ public class  Archivo implements Serializable  {
 		try {
 			//TODO: Crear el filepath
 			if(filepath == null) filepath =String.valueOf(this.getNumeroRegistro())+"_"+this.getIdPropietario()+".sig.cif";
+			
+			filepath=filepath.toLowerCase();
+			
 			FileOutputStream fileOut = new FileOutputStream(filepath);
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 			objectOut.writeObject(this);
@@ -194,5 +200,25 @@ public class  Archivo implements Serializable  {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+	}
+
+	public Archivo(Path documentPath){
+		try {
+			FileInputStream fis = new FileInputStream(documentPath.toFile());
+		   	ObjectInputStream ois = new ObjectInputStream(fis);
+			Archivo input = (Archivo) ois.readObject();
+			this.numeroRegistro=input.getNumeroRegistro();
+			this.idPropietario=input.getIdPropietario();
+			this.timestamp=input.getTimestamp();
+			this.documento=input.getDocumento();  //esto se guarda cifardo
+			this.cifrado=input.isCifrado();
+			this.nombreDocumento=input.getNombreDocumento();
+			this.firma=input.getFirma();
+			this.firma_registrador=input.getFirma_registrador();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return;
+
 	}
 }

@@ -228,7 +228,7 @@ public class  cliente{
                     IvParameterSpec iv = new IvParameterSpec(new byte[16]);
                     doc.cifrar(claveK,"AES/CBC/PKCS5Padding",true,iv);
                     Debug.info("Se ha cifrado el archivo.");
-                //Establecemos en el paquete la calve K
+                //Establecemos en el paquete la clave K
                     paquete.setClaveK(claveK);
                 //Ciframos la clave K con auth del Server
                     SSLSession session = socket.getSession();
@@ -261,6 +261,11 @@ public class  cliente{
             KeyStore keyStore;
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
             paquete.setInstruccion("GET:"+doc);
+            //Ciframos la clave K con auth del cliente
+                SSLSession session = socket.getSession();
+                java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+                paquete.setAuthCertificate(localcerts[0]);
+            Debug.info("Se ha cifrado la clave K.");
             outputSocketObject.writeObject(paquete);
             outputSocketObject.flush();
             outputSocketObject.close();
@@ -313,8 +318,7 @@ public class  cliente{
             //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
 
             storeHash(doc.getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
-            deleteFile(documentPath);
-
+            //deleteFile(documentPath);//TODO: Volver a activar esto
             socket.close();
         } catch (Exception e){
           e.printStackTrace();

@@ -26,6 +26,7 @@ import javax.net.*;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -131,7 +132,7 @@ public class  server{
 
                 case "GET":
                     Debug.info("La instrucción es de tipo GET.");
-                    getDocument(paqueteRecibido,ksKeyStore);
+                    getDocument(socket,paqueteRecibido,ksKeyStore);
                     break;
                 case "PUT":
                     Debug.info("La instrucción es de tipo PUT.");
@@ -336,15 +337,40 @@ public class  server{
             return;
     }
 
-    private static void getDocument(Paquete paqueteRecibido, KeyStore keyStore){
+    private static void getDocument(Socket socket,Paquete paqueteRecibido, KeyStore keyStore){
+
         try{
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
+        Paquete respuestaPeticion = new Paquete();
         int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
         List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
         archivos.forEach(x -> Debug.info(x));
         Path documentPath = Paths.get(archivos.get(0));
-        Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
-        
+        respuestaPeticion.setArchivo(new Archivo(documentPath));
 
+        String alias = "almacenCifrado";
+        SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
+        respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
+        Debug.info("Se ha descifrado el archivo para su envio");
+       
+
+        // Crea generador de claves
+            KeyGenerator keyGen;
+            keyGen =  KeyGenerator.getInstance ("AES");
+            keyGen.init (192);
+        // Generamos una clave
+            SecretKey claveK = keyGen.generateKey();
+        //Se cifra el Archivo (simetrico)
+            IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+            respuestaPeticion.getArchivo().cifrar(claveK,"AES/CBC/PKCS5Padding",true,iv);
+            Debug.info("Se ha cifrado el archivo.");
+        //Establecemos en el paquete la clave K
+            respuestaPeticion.setClaveK(claveK);
+            respuestaPeticion.cifrarClaveK(paqueteRecibido.getAuthCertificate().getPublicKey(),"RSA");
+        
+        outputSocketObject.writeObject(respuestaPeticion);
+        outputSocketObject.flush();
         }catch(Exception e){
           e.printStackTrace();
         }
