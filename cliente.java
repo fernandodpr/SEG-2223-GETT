@@ -350,7 +350,6 @@ public class  cliente{
 
             boolean resultado = solicitudServidor(socket,keyStorePath,file,trustStorePath,psswd);
 
-
         } catch (Exception e){
         }
         return;

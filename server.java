@@ -408,7 +408,7 @@ public class  server{
             ex.printStackTrace();
         }
     }
-    private static List<String> buscaArchivos(Path path, String archivo)
+    private static List<String> buscaArchivos(Path path, String filename)
         throws IOException {
 
         //https://mkyong.com/java/how-to-find-files-with-certain-extension-only/
@@ -427,7 +427,8 @@ public class  server{
                     //.filter(p -> p.endsWith(fileExtension))
                     // convert path to string first
                     .map(p -> p.toString().toLowerCase())
-                    .filter(f -> f.startsWith(archivo))
+                    .filter(f -> f.contains(filename))
+                    .filter(f -> f.endsWith(".sig.cif"))
                     .collect(Collectors.toList());
         }
 
