@@ -335,7 +335,9 @@ public class  server{
         try{
         int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
         List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
-        archivos.forEach(x -> System.out.println(x));
+        archivos.forEach(x -> Debug.info(x));
+        
+
 
         }catch(Exception e){
 
@@ -422,16 +424,11 @@ public class  server{
         try (Stream<Path> walk = Files.walk(path)) {
             result = walk
                     .filter(p -> !Files.isDirectory(p))
-                    // this is a path, not string,
-                    // this only test if path end with a certain path
-                    //.filter(p -> p.endsWith(fileExtension))
-                    // convert path to string first
                     .map(p -> p.toString().toLowerCase())
                     .filter(f -> f.contains(filename))
                     .filter(f -> f.endsWith(".sig.cif"))
                     .collect(Collectors.toList());
         }
-
         return result;
     }
 }
