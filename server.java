@@ -272,7 +272,11 @@ public class  server{
                 paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
                 Debug.info("Se ha cifrado el archivo para su almacenamiento");
             //Se guarda el documento en un fichero con el nombre correspondiente
-                paqueteRecibido.guardaDocumento(null);
+                String propietarioString = (String)paqueteRecibido.getArchivo().getIdPropietario();
+                propietarioString = propietarioString.split(",")[0];
+                propietarioString = propietarioString.substring(3);
+                String fileName = paqueteRecibido.getArchivo().getNumeroRegistro()+"_"+propietarioString+".sig.cif";
+                paqueteRecibido.guardaDocumento(fileName);
                 Debug.info("Se ha guardado el archivo");
 
 
@@ -300,6 +304,9 @@ public class  server{
                 respuesta.getArchivo().setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
                 //le damos idpropietario
                 String propietario = (String)paqueteRecibido.getArchivo().getIdPropietario();
+                //duda
+                //propietario = propietario.split(",")[0];
+                //propietario = propietario.substring(3);
                 respuesta.getArchivo().setIdPropietario(propietario);
                 //le damos idregistro
                 respuesta.getArchivo().setNumeroRegistro(paqueteRecibido.getArchivo().getNumeroRegistro());
