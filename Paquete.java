@@ -92,18 +92,4 @@ public class  Paquete implements Serializable {
 
     }
 
-
-    public void guardaDocumento(String filepath){
-  			try {
-  					//TODO: Crear el filepath
-  					if(filepath == null) filepath =String.valueOf(this.archivo.getNumeroRegistro())+"_"+this.archivo.getIdPropietario()+".sig.cif";
-  					FileOutputStream fileOut = new FileOutputStream(filepath);
-  					ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-  					objectOut.writeObject(this.archivo);
-  					objectOut.close();
-
-  			} catch (Exception ex) {
-  					ex.printStackTrace();
-  			}
-  	}
 }

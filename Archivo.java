@@ -183,5 +183,16 @@ public class  Archivo implements Serializable  {
 		return hexString.toString();
 		//Fuente: https://www.baeldung.com/sha-256-hashing-java
 	}
-
+	public void guardaDocumento(String filepath){
+		try {
+			//TODO: Crear el filepath
+			if(filepath == null) filepath =String.valueOf(this.getNumeroRegistro())+"_"+this.getIdPropietario()+".sig.cif";
+			FileOutputStream fileOut = new FileOutputStream(filepath);
+			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+			objectOut.writeObject(this);
+			objectOut.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
 }

@@ -260,6 +260,12 @@ public class  server{
                 paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
             // Se identifica el propietario del documento
                 //paqueteRecibido.getArchivo().setIdPropietario("Paco Jones"); //TODO: Cambiar esto
+                
+                String propietarioString = (String)paqueteRecibido.getArchivo().getIdPropietario();
+                propietarioString = propietarioString.split(",")[0];
+                propietarioString = propietarioString.substring(3);
+                paqueteRecibido.getArchivo().setIdPropietario(propietarioString);
+
                 Debug.info("Id propietario:"+paqueteRecibido.getArchivo().getIdPropietario());
             //Se firman id Registro, id Propietario, documento, firmaDoc
                 alias = "server-sign (servidor-sub ca)";
@@ -272,11 +278,9 @@ public class  server{
                 paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
                 Debug.info("Se ha cifrado el archivo para su almacenamiento");
             //Se guarda el documento en un fichero con el nombre correspondiente
-                String propietarioString = (String)paqueteRecibido.getArchivo().getIdPropietario();
-                propietarioString = propietarioString.split(",")[0];
-                propietarioString = propietarioString.substring(3);
-                String fileName = paqueteRecibido.getArchivo().getNumeroRegistro()+"_"+propietarioString+".sig.cif";
-                paqueteRecibido.guardaDocumento(fileName);
+
+                paqueteRecibido.getArchivo().guardaDocumento(null);
+
                 Debug.info("Se ha guardado el archivo");
 
 
@@ -337,8 +341,9 @@ public class  server{
         int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
         List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
         archivos.forEach(x -> Debug.info(x));
+        Path documentPath = Paths.get(archivos.get(0));
+        Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
         
-
 
         }catch(Exception e){
           e.printStackTrace();
@@ -348,8 +353,6 @@ public class  server{
 
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
         //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
-
-
 
         /*X509Certificate certFirma = (X509Certificate)firma;
         String subjectFirma = certFirma.getSubjectDN().getName();
