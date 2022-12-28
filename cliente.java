@@ -237,8 +237,8 @@ public class  cliente{
                     Debug.info("Se ha cifrado la clave K.");
 
             //Se completa la información del paquete
-                paquete.setSignCertificateClient(signCertificate);
-                paquete.setAuthCertificateClient(authCertificate);
+                paquete.setSignCertificate(signCertificate);
+                paquete.setAuthCertificate(authCertificate);
                 paquete.setArchivo(doc);
             //Se envía el tipo de operación a realizar
                 paquete.setInstruccion("PUT:"+doc.getNombreDocumento());
@@ -248,14 +248,27 @@ public class  cliente{
 
 
                 //cerra ObjectOutputStream
-                //outputSocketObject.close();
+                outputSocketObject.close();
 
         }catch(Exception e){
         e.printStackTrace();
         }
         return true;
     }
-
+    private static boolean solicitudServidor(SSLSocket socket,String keyStorePath,String doc, String trustStorePath, String pswd){
+        try {
+            Paquete paquete = new Paquete();
+            KeyStore keyStore;
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+            paquete.setInstruccion("GET:"+doc); 
+            outputSocketObject.writeObject(paquete);
+            outputSocketObject.flush();
+            outputSocketObject.close();
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+        return true;
+    }
 
 
     public static void Registrar_fichero(){
@@ -307,6 +320,7 @@ public class  cliente{
         return;
     }
     public static void menu_peticion(){
+        String file = "";
         try{
             String filesPath = solicitarTexto("Introduzca el path a la carpeta donde encontrar los archivos enviados:",".");
             List<String> archivos = buscaArchivos(Paths.get(filesPath), "sentfile");
@@ -317,7 +331,7 @@ public class  cliente{
                 Debug.info(partes[0].substring(2));
                 def=partes[0].substring(2);
             }
-            String file = solicitarTexto("Introduce el número de archivo que deseas recuperar:",def);
+            file = solicitarTexto("Introduce el número de archivo que deseas recuperar:",def);
             //file=filesPath+"/"+file+".sentfile";
             Debug.info("Se va a solicitar el archivo:  "+file);
 
@@ -334,36 +348,9 @@ public class  cliente{
             //Creación de socket
             SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
 
-            //Confección del documento
-            //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
-            Path documentPath = Paths.get(solicitarArchivo("documento","./enviotest.png"));
-            Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
-            Debug.info("Se ha creado el archivo");
+            boolean resultado = solicitudServidor(socket,keyStorePath,file,trustStorePath,psswd);
 
 
-            boolean resultado = registrarDocumento(socket,keyStorePath,doc,trustStorePath,psswd);
-
-            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
-
-            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-            if(paqueteRecibido.getInstruccion().substring(0,13).equals("PUT:RESPONSE:")) Debug.info("Ha llegado la respuesta");
-            if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
-            //proceso de obtencion de PUT RESPONSE
-            //Verificar certificado CertFirmaS
-            //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
-            // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
-
-
-            //Voy a hacer el hash
-            //Supongo que aqui la instruccion y el numero del error esta gestionado
-            //Es un poco el código que habría que meter en donde se gestione una de las peticiones exitosas
-            //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
-
-            storeHash(doc.getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
-            deleteFile(documentPath);
-
-            socket.close();
         } catch (Exception e){
         }
         return;
@@ -465,15 +452,15 @@ public class  cliente{
 
     }
     private static void deleteFile(Path documentPath){
-        
-    if (documentPath.toFile().delete()) { 
-      System.out.println("Archivo eliminado: " + documentPath.toFile().getName());
-    } else {
-      System.out.println("Fallo al eliminar el archivo");
-    } 
-    }
+            
+        if (documentPath.toFile().delete()) { 
+        System.out.println("Archivo eliminado: " + documentPath.toFile().getName());
+        } else {
+        System.out.println("Fallo al eliminar el archivo");
+        } 
+        }
 
-    public static List<String> buscaArchivos(Path path, String fileExtension)
+    private static List<String> buscaArchivos(Path path, String fileExtension)
         throws IOException {
 
         //https://mkyong.com/java/how-to-find-files-with-certain-extension-only/
@@ -498,4 +485,8 @@ public class  cliente{
 
         return result;
     }
+    
+
+
 }
+

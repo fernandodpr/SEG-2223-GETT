@@ -32,8 +32,16 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import java.security.cert.CertificateException;
 import javax.security.cert.X509Certificate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.net.ssl.TrustManager;
+
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.io.File;
+import java.util.List;
 
 public class  server{
 
@@ -122,6 +130,7 @@ public class  server{
 
                 case "GET":
                     Debug.info("La instrucción es de tipo GET.");
+                    getDocument(paqueteRecibido,ksKeyStore);
                     break;
                 case "PUT":
                     Debug.info("La instrucción es de tipo PUT.");
@@ -206,11 +215,11 @@ public class  server{
             Debug.info("Entramos en la secuencia de PUT");
 
             //Verificar el certificado certFirmac
-                java.security.cert.Certificate signCertificateClient = paqueteRecibido.getSignCertificateClient();
+                java.security.cert.Certificate signCertificateClient = paqueteRecibido.getSignCertificate();
                 //IMPORTANTE CAMBIAR ESTO ANTES DE SEGUIR ADELANTE
                 //TODO: Cambiar esta parte del código
                 Debug.warn("Es necesario cambiar esto en el código.");
-                java.security.cert.Certificate authCertificateClient = paqueteRecibido.getSignCertificateClient();
+                java.security.cert.Certificate authCertificateClient = paqueteRecibido.getSignCertificate();
 
                 if(verificarCertSign(signCertificateClient,authCertificateClient)){
                     Debug.info("El certificado ha sido validado");
@@ -240,7 +249,7 @@ public class  server{
                     Debug.warn("El documento ya estaba desencriptado");
                 }
             //Verificar la firma  //TODO: Estaparte no funciona, hay que arreglarla
-                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificateClient(),"SHA512withRSA",true) || true){ //TODO: Quitar ese or, era para poder continuar desarrollando
+                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",true) || true){ //TODO: Quitar ese or, era para poder continuar desarrollando
                     Debug.warn("La firma del documento es correcta.");
                 }else{
                     Debug.warn("La verificación de la firma ha fallado");
@@ -298,7 +307,7 @@ public class  server{
                 String alias = "server-sign (servidor-sub ca)";
                 PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
                 java.security.cert.Certificate signCertificate = keyStore.getCertificate(alias);
-                respuesta.setSignCertificateServer(signCertificate);
+                respuesta.setSignCertificate(signCertificate);
 
                 //Enviamos el paquete
                 outputSocketObject.writeObject(respuesta);
@@ -315,7 +324,17 @@ public class  server{
             return;
     }
 
+    private static void getDocument(Paquete paqueteRecibido, KeyStore keyStore){
+        try{
+        int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
+        List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
+        archivos.forEach(x -> System.out.println(x));
 
+        }catch(Exception e){
+
+        }
+        
+    }
 
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
         //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
@@ -381,5 +400,30 @@ public class  server{
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+    private static List<String> buscaArchivos(Path path, String archivo)
+        throws IOException {
+
+        //https://mkyong.com/java/how-to-find-files-with-certain-extension-only/
+
+        if (!Files.isDirectory(path)) {
+            throw new IllegalArgumentException("Path must be a directory!");
+        }
+
+        List<String> result;
+
+        try (Stream<Path> walk = Files.walk(path)) {
+            result = walk
+                    .filter(p -> !Files.isDirectory(p))
+                    // this is a path, not string,
+                    // this only test if path end with a certain path
+                    //.filter(p -> p.endsWith(fileExtension))
+                    // convert path to string first
+                    .map(p -> p.toString().toLowerCase())
+                    .filter(f -> f.startsWith(archivo))
+                    .collect(Collectors.toList());
+        }
+
+        return result;
     }
 }

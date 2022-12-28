@@ -14,36 +14,28 @@ public class  Paquete implements Serializable {
     private Archivo archivo; //con el documento cifrado por clave K
 	private String instruccion;
 	private byte[] claveK;
-	private java.security.cert.Certificate signCertificateClient;
-	private java.security.cert.Certificate authCertificateClient;
-  private java.security.cert.Certificate signCertificateServer;
+	private java.security.cert.Certificate signCertificate;
+	private java.security.cert.Certificate authCertificate;
+  	
 
 
-	public java.security.cert.Certificate getAuthCertificateClient() {
-		return this.authCertificateClient;
+	public java.security.cert.Certificate getAuthCertificate() {
+		return this.authCertificate;
 	}
 
-	public void setAuthCertificateClient(java.security.cert.Certificate authCertificateClient) {
-		this.authCertificateClient = authCertificateClient;
+	public void setAuthCertificate(java.security.cert.Certificate authCertificate) {
+		this.authCertificate = authCertificate;
+	}
+
+	public java.security.cert.Certificate getSignCertificate() {
+		return this.signCertificate;
+	}
+
+	public void setSignCertificate(java.security.cert.Certificate signCertificate) {
+		this.signCertificate = signCertificate;
 	}
 
 
-
-	public java.security.cert.Certificate getSignCertificateClient() {
-		return this.signCertificateClient;
-	}
-
-	public void setSignCertificateClient(java.security.cert.Certificate signCertificateClient) {
-		this.signCertificateClient = signCertificateClient;
-	}
-
-  public java.security.cert.Certificate getSignCertificateServer() {
-    return this.signCertificateServer;
-  }
-
-  public void setSignCertificateServer(java.security.cert.Certificate signCertificateServer) {
-    this.signCertificateServer = signCertificateServer;
-  }
 
 
 
