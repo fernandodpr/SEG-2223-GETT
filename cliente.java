@@ -278,9 +278,6 @@ public class  cliente{
 
             boolean resultado = registrarDocumento(socket,keyStorePath,doc,trustStorePath,psswd);
 
-
-
-
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
 
@@ -292,6 +289,13 @@ public class  cliente{
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
 
+
+            //Voy a hacer el hash
+            //Supongo que aqui la instruccion y el numero del error esta gestionado
+            //Es un poco el código que habría que meter en donde se gestione una de las peticiones exitosas
+            //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
+
+            storeHash(doc.getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
 
 
             socket.close();
@@ -381,5 +385,18 @@ public class  cliente{
 		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
 		System.setProperty("ocsp.enable",                            "false");
 
-	}
+    }
+    
+    private static void storeHash(String hash,String idDoc){
+        try {
+            Debug.info("Tengo el hash"+hash.substring(0,20)+" y el núnero de registro "+idDoc);
+            PrintWriter out = new PrintWriter(idDoc+".sentfile");
+            out.println(hash);
+            out.close();
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+
+    }
 }

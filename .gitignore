@@ -1,3 +1,6 @@
+*.sig.cif
+*.sentfile
+
 # Compiled class file
 *.class
 

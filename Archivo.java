@@ -12,6 +12,12 @@ import java.lang.*;
 public class  Archivo implements Serializable  {
 	private int numeroRegistro;
 	private String idPropietario;
+	private String timestamp;
+    private byte[] documento;  //esto se guarda cifardo
+    private boolean cifrado;
+    private String nombreDocumento;
+    private byte[] firma;
+    private byte[] firma_registrador;
 
 	public Object getIdPropietario() {
 		return this.idPropietario;
@@ -21,12 +27,7 @@ public class  Archivo implements Serializable  {
 		this.idPropietario = idPropietario;
 	}
 ;
-    private String timestamp;
-    private byte[] documento;  //esto se guarda cifardo
-    private boolean cifrado;
-    private String nombreDocumento;
-    private byte[] firma;
-    private byte[] firma_registrador;
+
 
 	//GETTERS Y SETTERS
 
@@ -168,5 +169,19 @@ public class  Archivo implements Serializable  {
 		return resultado;
 	}
 
+	public String getHash() {
+		
+		StringBuilder hexString = new StringBuilder(2 * this.documento.length);
+		for (int i = 0; i < this.documento.length; i++) {
+			
+			String hex = Integer.toHexString(0xff & this.documento[i]);
+			if(hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString.toString();
+		//Fuente: https://www.baeldung.com/sha-256-hashing-java
+	}
 
 }
