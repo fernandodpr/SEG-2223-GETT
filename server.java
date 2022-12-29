@@ -212,6 +212,7 @@ public class  server{
     }
     private static void putDocument(Paquete paqueteRecibido, KeyStore keyStore){
         try{
+            Paquete copiaPaquete = new Paquete();
             Debug.info("Entramos en la secuencia de PUT");
 
             //Verificar el certificado certFirmac
@@ -258,11 +259,7 @@ public class  server{
                 int identificador =secuenciaNumerica();
                 paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
             // Se identifica el propietario del documento
-                //paqueteRecibido.getArchivo().setIdPropietario("Paco Jones"); //TODO: Cambiar esto
-
-                String propietarioString = (String)paqueteRecibido.getArchivo().getIdPropietario();
-                propietarioString = propietarioString.split(",")[0];
-                propietarioString = propietarioString.substring(3);
+                String propietarioString = paqueteRecibido.getArchivo().getIdPropietario();
                 paqueteRecibido.getArchivo().setIdPropietario(propietarioString);
 
                 Debug.info("Id propietario:"+paqueteRecibido.getArchivo().getIdPropietario());
@@ -271,14 +268,17 @@ public class  server{
                 PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
                 paqueteRecibido.getArchivo().firmar(signPrivateKey,"SHA256withRSA",false);
                 Debug.info("Se ha firmado id Registro, id Propietario, documento, firmaDoc");
+
+            //hacer la copia para cifrar y guardar
+                copiaPaquete = paqueteRecibido;
             //Se Cifra de nuevo el archivo para poder guardarlo  //TODO:
                 alias = "almacenCifrado";
                 SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
-                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
+                copiaPaquete.getArchivo().cifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
                 Debug.info("Se ha cifrado el archivo para su almacenamiento");
             //Se guarda el documento en un fichero con el nombre correspondiente
 
-                paqueteRecibido.getArchivo().guardaDocumento(null);
+                copiaPaquete.getArchivo().guardaDocumento(null);
 
                 Debug.info("Se ha guardado el archivo");
 
@@ -298,24 +298,16 @@ public class  server{
 
             // Respuesta al cliente
                 Paquete respuesta = new Paquete();
-
-                if (paqueteRecibido.getArchivo().getFirma_registrador()!=null) Debug.info("Tiene bien la firma");
-                respuesta.setInstruccion("PUT:RESPONSE:1"+paqueteRecibido.getArchivo().getNombreDocumento());
-                //creamos un archivo vacio
-                //Archivo archivo = new Archivo(null,paqueteRecibido.getArchivo().getNombreDocumento());
-                respuesta.setArchivo(paqueteRecibido.getArchivo());
-                //le damos la firma de registrador
-                respuesta.getArchivo().setFirma_registrador(paqueteRecibido.getArchivo().getFirma_registrador());
-                //le damos idpropietario
-                String propietario = (String)paqueteRecibido.getArchivo().getIdPropietario();
-                respuesta.getArchivo().setIdPropietario(propietario);
-                //le damos idregistro
-                respuesta.getArchivo().setNumeroRegistro(paqueteRecibido.getArchivo().getNumeroRegistro());
-                //le damos el certificado de firma del server; PROBLEMA
+                respuesta = paqueteRecibido;
+                respuesta.setInstruccion("PUT:RESPONSE:"+paqueteRecibido.getArchivo().getNombreDocumento());
+             //le pasamos el certificado del server
                 String alias = "server-sign (servidor-sub ca)";
-                PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
-                java.security.cert.Certificate signCertificate = keyStore.getCertificate(alias);
-                respuesta.setSignCertificate(signCertificate);
+                Key key = keyStore.getKey(alias,"123456".toCharArray());
+                java.security.cert.Certificate cert =null;
+                if(key instanceof PrivateKey){
+                  cert = keyStore.getCertificate(alias);
+                }
+                respuesta.setSignCertificate(cert);
 
                 //Enviamos el paquete
                 outputSocketObject.writeObject(respuesta);
@@ -348,7 +340,7 @@ public class  server{
         SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
         respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
         Debug.info("Se ha descifrado el archivo para su envio");
-       
+
 
         // Crea generador de claves
             KeyGenerator keyGen;
@@ -363,7 +355,7 @@ public class  server{
         //Establecemos en el paquete la clave K
             respuestaPeticion.setClaveK(claveK);
             respuestaPeticion.cifrarClaveK(paqueteRecibido.getAuthCertificate().getPublicKey(),"RSA");
-        
+
         outputSocketObject.writeObject(respuestaPeticion);
         outputSocketObject.flush();
         }catch(Exception e){

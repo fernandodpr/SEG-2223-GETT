@@ -203,7 +203,7 @@ public class  cliente{
                 //alias=solicitarTexto("Introduzca el alias del certificado de autenticación",alias);
                 PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
                 java.security.cert.Certificate authCertificate = keyStore.getCertificate(alias);
-
+                //DUDA por que le mandamos las claves privadas??
                 alias = "cliente-sign (cliente-sub ca)";
                 //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                 PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
@@ -308,15 +308,23 @@ public class  cliente{
             if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
             //proceso de obtencion de PUT RESPONSE
             //Verificar certificado CertFirmaS
+            if(paqueteRecibido.getSignCertificate()==null)Debug.info("No hay firma");
+            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA256withRSA",true)){
+              Debug.info("Se ha verificado la firma ");
+            }
+
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
+            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA256withRSA",false)){
+              Debug.info("Se ha verificado la firma ");
+            }
 
 
             //Voy a hacer el hash
             //Supongo que aqui la instruccion y el numero del error esta gestionado
             //Es un poco el código que habría que meter en donde se gestione una de las peticiones exitosas
             //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
-            paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
+            //paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
             storeHash(paqueteRecibido.getArchivo().getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             //deleteFile(documentPath);
 
