@@ -1,56 +1,58 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.PrintWriter;
-import java.security.KeyStore;
+//IMPORT
+    import java.io.BufferedReader;
+    import java.io.BufferedWriter;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    import java.io.OutputStreamWriter;
+    import java.io.ObjectOutputStream;
+    import java.io.ObjectInputStream;
+    import java.io.PrintWriter;
+    import java.security.KeyStore;
 
-import java.net.*;
-import java.io.*;
-import java.security.*;
-import java.security.spec.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
-import java.lang.*;
-import java.io.File;
-import java.util.List;
+    import java.net.*;
+    import java.io.*;
+    import java.security.*;
+    import java.security.spec.*;
+    import javax.crypto.*;
+    import javax.crypto.spec.*;
+    import java.lang.*;
+    import java.io.File;
+    import java.util.List;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.lang.ProcessHandle.Info;
-import java.security.KeyStore;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import java.security.cert.X509Certificate;
-import java.nio.file.Paths;
-import java.nio.file.Path;
-import java.nio.file.Files;
+    import java.util.stream.Collectors;
+    import java.util.stream.Stream;
+    import java.lang.ProcessHandle.Info;
+    import java.security.KeyStore;
+    import javax.net.ssl.KeyManagerFactory;
+    import javax.net.ssl.SSLContext;
+    import javax.net.ssl.SSLSession;
+    import javax.net.ssl.SSLSocket;
+    import javax.net.ssl.SSLSocketFactory;
+    import javax.net.ssl.TrustManager;
+    import javax.net.ssl.TrustManagerFactory;
+    import java.security.cert.X509Certificate;
+    import java.nio.file.Paths;
+    import java.nio.file.Path;
+    import java.nio.file.Files;
 
+    import java.util.Base64;
+    import java.security.MessageDigest;
 public class  cliente{
     //private static String raizAlmacenes = null;
     private static String raizAlmacenes = "./Crypto/";
     private static String keyStorePath   = raizAlmacenes + "Cliente/KeyStoreCliente";
     private static String trustStorePath = raizAlmacenes + "Cliente/TrustStoreCliente";
-
     private static final String[] protocols = new String[]{"TLSv1.3"};
     public static void main(String[] args) throws Exception {
         boolean salir = false;
         do{
             switch (menu()) {
                 case "A":
-                    menu_registro();
+                    putdocumento();
                     break;
                 case "B":
-                    menu_peticion();
+                    getdocumento();
                     break;
                 case "S":
                     salir = true;
@@ -59,54 +61,240 @@ public class  cliente{
                     break;
             }
         }while(!salir);
-
-        System.out.println("Estamos fuera del recorrido correcto");
-        SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,"123456","localhost");
-        PrintWriter socketout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-        ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-
-        String inputString = "Soy el documento";
-        String claveK = "Soy la calve K";
-        Archivo arqtest = new Archivo(inputString.getBytes(),"Soy el nombre del documento");
-
-
-        // Crea generador de claves
-        KeyPairGenerator keyPairGen;
-        keyPairGen = KeyPairGenerator.getInstance("RSA");
-
-        // Crea generador de claves
-
-        keyPairGen.initialize(2048);
-
-        // Generamos un par de claves (publica y privada)
-        KeyPair     keypair    = keyPairGen.genKeyPair();
-        PrivateKey  privateKey = keypair.getPrivate();
-        PublicKey   publicKey  = keypair.getPublic();
-
-
-        //se pueden eliminar parametros y ese Provider (SunJCE) dudo que esté bn
-        arqtest.firmar(privateKey,"SHA512withRSA",true);
-
-        Paquete paqtest = new Paquete(arqtest,"Instruccion",publicKey.getEncoded());
-
-            outputSocketObject.writeObject(paqtest);
-
-            outputSocketObject.flush();
-
-        if(socketout.checkError())
-            System.out.println("SSLSocketClient: java.io.PrintWriter error");
-
-        BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-        String inputLine;
-
-        while ((inputLine = socketin.readLine()) != null)
-            System.out.println(inputLine);
-            outputSocketObject.close();
-            socketout.close();
-            socket.close();
-
     }
+    ///GET DOCUMENTO
+    public static void getdocumento(){
+        String file = "";
+        try{
+            String filesPath = solicitarTexto("Introduzca el path a la carpeta donde encontrar los archivos enviados:",".");
+            List<String> archivos = buscaArchivos(Paths.get(filesPath), "sentfile");
+            Debug.info("Se han encontrado los siguientes archivos:");
+            String def = "";
+            for(String s:archivos){
+                String[] partes = s.split(".sentfile");
+                Debug.info(partes[0].substring(2));
+                def=partes[0].substring(2);
+            }
+            file = solicitarTexto("Introduce el número de archivo que deseas recuperar:",def);
+            //file=filesPath+"/"+file+".sentfile";
+            Debug.info("Se va a solicitar el archivo:  "+file);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        try {
+            //Solicitud de los datos
+            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
+            String psswd = solicitarPassword("123456");
+            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
+
+            //Creación de socket
+            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
+
+            boolean resultado = solicitudServidor(socket,keyStorePath,file,trustStorePath,psswd);
+            Debug.info("Peticion enviada");
+            resultado=respuestaServidor(socket,keyStorePath,file,trustStorePath,psswd);
+
+        } catch (Exception e){
+          e.printStackTrace();
+        }
+        return;
+    }
+    private static boolean solicitudServidor(SSLSocket socket,String keyStorePath,String doc, String trustStorePath, String pswd){
+        try {
+            Paquete paquete = new Paquete();
+            KeyStore keyStore;
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+            paquete.setInstruccion("GET:"+doc);
+            
+                SSLSession session = socket.getSession();
+                java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+                paquete.setAuthCertificate(localcerts[0]);
+            
+            outputSocketObject.writeObject(paquete);
+
+        } catch (Exception e) {
+            //TODO: handle exception
+            e.printStackTrace();
+        }
+        return true;
+    }
+    private static boolean respuestaServidor(SSLSocket socket,String keyStorePath,String doc, String trustStorePath, String pswd){
+        KeyStore keyStore;
+        try {
+            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
+            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
+            
+            keyStore  = KeyStore.getInstance("JCEKS");
+            keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
+            //Verificar el certificado del servidor
+            //Descifrar el Documento
+                String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
+                //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
+                PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
+                
+                if(paqueteRecibido.getArchivo().isCifrado()){
+                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
+                    Debug.info("Se ha desencriptado la clave K");
+                    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding");
+                    paqueteRecibido.getArchivo().guardaDocumentoDatos("Cliente-RespuestaServidor");
+                    Debug.info("Se ha desencriptado el documento");
+                }else{
+                    Debug.warn("El documento ya estaba desencriptado");
+                }
+            //Verificar SigRd
+                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){ //TODO: Quitar ese or, era para poder continuar desarrollando
+                    Debug.warn("La firma del documento es correcta.");
+                }else{
+                    Debug.warn("La verificación de la firma ha fallado");
+                }
+            //Verificar el hash
+                byte[] hashecito = getHash(paqueteRecibido.getArchivo().getDocumento());
+                Debug.taco("AAAAAAAAAAAAA");
+                Debug.info(hashecito);
+                storeHash(hashecito,"PUTON");
+            //Pregunar si se quiere guardar el original
+        } catch (Exception e) {
+            e.printStackTrace();
+            //TODO: handle exception
+        }
+        return false;
+    }
+    ///PUT DOCUMENTO
+    public static void putdocumento(){
+        try {
+            //Solicitud de los datos
+            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
+            String psswd = solicitarPassword("123456");
+            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
+
+            //Creación de socket
+            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
+
+            //Confección del documento
+            //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
+            Path documentPath = Paths.get(solicitarArchivo("documento","./lorem"));
+            Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
+            Debug.info("Se ha creado el archivo");
+
+
+            boolean resultado = registrarDocumento(socket,keyStorePath,doc,trustStorePath,psswd);
+
+            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
+
+            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
+
+            if(paqueteRecibido.getInstruccion().substring(0,13).equals("PUT:RESPONSE:")) Debug.info("Ha llegado la respuesta");
+            if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
+            //proceso de obtencion de PUT RESPONSE
+            //Verificar certificado CertFirmaS
+            if(paqueteRecibido.getSignCertificate()==null)Debug.info("No hay firma");
+           
+  
+
+            //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
+            // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
+            paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
+            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){
+              Debug.info("Se ha verificado la firma ");
+            }else{
+                Debug.warn("La verificación de firma ha fallado.");
+            }
+
+            
+            //Hash
+          
+            storeHash(getHash(paqueteRecibido.getArchivo().getDocumento()),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
+            //deleteFile(documentPath);
+            
+            socket.close();
+        } catch (Exception e){
+          e.printStackTrace();
+        }
+        return;
+    }
+    private static boolean registrarDocumento(SSLSocket socket,String keyStorePath,Archivo doc, String trustStorePath, String pswd){
+        try{
+            //CertAuthC es el certificado de autenticación del cliente (que incorpora su identidad id de Propietario).
+            //nombreDoc es un nombre, de una longitud maxima de 100 caracteres, para el documento.
+            //documento es el contenido del fichero (cualquier tipo de fichero) con la información a registrar.
+
+            Paquete paquete = new Paquete();
+            KeyStore keyStore;
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
+            //Obtención de datos necesarios
+                keyStore  = KeyStore.getInstance("JCEKS");
+                keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
+                //Aqui no se si sería interesante pedirl al usuario el alias del certificado
+                String alias = "cliente-auth (cliente-sub ca)";
+                //alias=solicitarTexto("Introduzca el alias del certificado de autenticación",alias);
+                PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
+                java.security.cert.Certificate authCertificate = keyStore.getCertificate(alias);
+                //DUDA por que le mandamos las claves privadas??
+                alias = "cliente-sign (cliente-sub ca)";
+                //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
+                PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
+                java.security.cert.Certificate signCertificate = keyStore.getCertificate(alias);
+
+            //1. Se firma el archivo
+                //Aplicamos el metodo firma de Archivo
+                java.security.cert.Certificate[] localcerts = socket.getSession().getLocalCertificates();
+                X509Certificate localcert = (X509Certificate)localcerts[0];
+                doc.setIdPropietario((String)localcert.getSubjectDN().getName());
+                Debug.info("Propietario: "+doc.getIdPropietario());
+                doc.firmar(signPrivateKey,"SHA512withRSA",true);
+
+            //2. Se cifra la información de Archivo
+                // Crea generador de claves
+                    KeyGenerator keyGen;
+                    keyGen =  KeyGenerator.getInstance ("AES");
+                    keyGen.init (128);
+                // Generamos una clave
+                    SecretKey claveK = keyGen.generateKey();
+                    Debug.info(claveK.getEncoded());
+
+                    byte[] rawData =claveK.getEncoded();
+                    
+                    String encodedKey = Base64.getEncoder().encodeToString(rawData);
+                    Debug.info("Se ha generado la clave K: " + encodedKey);
+
+
+                //Se cifra el Archivo (simetrico)
+                    doc.cifrar(claveK,"AES/CBC/PKCS5Padding");
+                    Debug.info("Se ha cifrado el archivo.");
+                //Establecemos en el paquete la clave K
+                    paquete.setClaveK(claveK);
+                //Ciframos la clave K con auth del Server
+                    SSLSession session = socket.getSession();
+                    java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
+                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA");
+                    Debug.info("Se ha cifrado la clave K.");
+
+            //Se completa la información del paquete
+                paquete.setSignCertificate(signCertificate);
+                paquete.setAuthCertificate(authCertificate);
+                paquete.setArchivo(doc);
+            //Se envía el tipo de operación a realizar
+                paquete.setInstruccion("PUT:"+doc.getNombreDocumento());
+                outputSocketObject.writeObject(paquete);
+                outputSocketObject.flush();
+                Debug.info("Se ha enviado la operación:   "+"PUT:"+doc.getNombreDocumento());
+
+
+                //cerra ObjectOutputStream
+                //outputSocketObject.close();
+
+        }catch(Exception e){
+        e.printStackTrace();
+        }
+        return true;
+    }
+    //METODOS DE CONEXION
     private static SSLSocket handshakeTLS(String host, int port,String keyStorePath, String trustStorePath, String pswd, String IpOCSPResponder) throws Exception{
 
             SSLSocket socket;
@@ -182,227 +370,20 @@ public class  cliente{
                 }
         return socket;
     }
-    private static boolean registrarDocumento(SSLSocket socket,String keyStorePath,Archivo doc, String trustStorePath, String pswd){
-        try{
-            //CertAuthC es el certificado de autenticación del cliente (que incorpora su identidad id de Propietario).
-            //nombreDoc es un nombre, de una longitud maxima de 100 caracteres, para el documento.
-            //documento es el contenido del fichero (cualquier tipo de fichero) con la información a registrar.
+    private static void definirRevocacionOCSP(){
+		// Almacen de claves
+		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
+		System.setProperty("ocsp.enable",                            "true");
 
-            Paquete paquete = new Paquete();
-            KeyStore keyStore;
-            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+	}
+    private static void definirRevocacionOCSPStapling(){
+		// Almacen de claves
+		System.setProperty("jdk.tls.client.enableStatusRequestExtension",   "true");
+		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
+		System.setProperty("ocsp.enable",                            "false");
 
-            //Obtención de datos necesarios
-                keyStore  = KeyStore.getInstance("JCEKS");
-                keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
-                //Aqui no se si sería interesante pedirl al usuario el alias del certificado
-                String alias = "cliente-auth (cliente-sub ca)";
-                //alias=solicitarTexto("Introduzca el alias del certificado de autenticación",alias);
-                PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
-                java.security.cert.Certificate authCertificate = keyStore.getCertificate(alias);
-                //DUDA por que le mandamos las claves privadas??
-                alias = "cliente-sign (cliente-sub ca)";
-                //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
-                PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,pswd.toCharArray());
-                java.security.cert.Certificate signCertificate = keyStore.getCertificate(alias);
-
-            //1. Se firma el archivo
-                //Aplicamos el metodo firma de Archivo
-                java.security.cert.Certificate[] localcerts = socket.getSession().getLocalCertificates();
-                X509Certificate localcert = (X509Certificate)localcerts[0];
-                doc.setIdPropietario((String)localcert.getSubjectDN().getName());
-                Debug.info("Propietario: "+doc.getIdPropietario());
-                doc.firmar(signPrivateKey,"SHA512withRSA",true);
-
-            //2. Se cifra la información de Archivo
-                // Crea generador de claves
-                    KeyGenerator keyGen;
-                    keyGen =  KeyGenerator.getInstance ("AES");
-                    keyGen.init (192);
-                // Generamos una clave
-                    SecretKey claveK = keyGen.generateKey();
-                //Se cifra el Archivo (simetrico)
-                    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-                    doc.cifrar(claveK,"AES/CBC/PKCS5Padding",true,iv);
-                    Debug.info("Se ha cifrado el archivo.");
-                //Establecemos en el paquete la clave K
-                    paquete.setClaveK(claveK);
-                //Ciframos la clave K con auth del Server
-                    SSLSession session = socket.getSession();
-                    java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
-                    paquete.cifrarClaveK(servercerts[0].getPublicKey(),"RSA");
-                    Debug.info("Se ha cifrado la clave K.");
-
-            //Se completa la información del paquete
-                paquete.setSignCertificate(signCertificate);
-                paquete.setAuthCertificate(authCertificate);
-                paquete.setArchivo(doc);
-            //Se envía el tipo de operación a realizar
-                paquete.setInstruccion("PUT:"+doc.getNombreDocumento());
-                outputSocketObject.writeObject(paquete);
-                outputSocketObject.flush();
-                Debug.info("Se ha enviado la operación:   "+"PUT:"+doc.getNombreDocumento());
-
-
-                //cerra ObjectOutputStream
-                //outputSocketObject.close();
-
-        }catch(Exception e){
-        e.printStackTrace();
-        }
-        return true;
     }
-    private static boolean solicitudServidor(SSLSocket socket,String keyStorePath,String doc, String trustStorePath, String pswd){
-        try {
-            Paquete paquete = new Paquete();
-            KeyStore keyStore;
-            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
-            paquete.setInstruccion("GET:"+doc);
-            
-                SSLSession session = socket.getSession();
-                java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
-                paquete.setAuthCertificate(localcerts[0]);
-            
-            outputSocketObject.writeObject(paquete);
-
-        } catch (Exception e) {
-            //TODO: handle exception
-            e.printStackTrace();
-        }
-        return true;
-    }
-    public static void menu_registro(){
-        try {
-            //Solicitud de los datos
-            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
-            String psswd = solicitarPassword("123456");
-            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
-
-            //Creación de socket
-            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
-
-            //Confección del documento
-            //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
-            Path documentPath = Paths.get(solicitarArchivo("documento","./enviotest.png"));
-            Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
-            Debug.info("Se ha creado el archivo");
-
-
-            boolean resultado = registrarDocumento(socket,keyStorePath,doc,trustStorePath,psswd);
-
-            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
-
-            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-            if(paqueteRecibido.getInstruccion().substring(0,13).equals("PUT:RESPONSE:")) Debug.info("Ha llegado la respuesta");
-            if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
-            //proceso de obtencion de PUT RESPONSE
-            //Verificar certificado CertFirmaS
-            if(paqueteRecibido.getSignCertificate()==null)Debug.info("No hay firma");
-            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",true)){
-              Debug.info("Se ha verificado la firma ");
-            }
-
-            //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
-            // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
-            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){
-              Debug.info("Se ha verificado la firma ");
-            }
-
-            
-            //Voy a hacer el hash
-            //Supongo que aqui la instruccion y el numero del error esta gestionado
-            //Es un poco el código que habría que meter en donde se gestione una de las peticiones exitosas
-            //paqueteRecibido.getArchivo().getHash();//PAra hacer esto tendríamos que mandar de vuelta el archivo en la respuesta no estoy seguro de que eso sea lo mas eficiente
-            //paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
-            storeHash(paqueteRecibido.getArchivo().getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
-            //deleteFile(documentPath);
-            
-            socket.close();
-        } catch (Exception e){
-          e.printStackTrace();
-        }
-        return;
-    }
-    public static void menu_peticion(){
-        String file = "";
-        try{
-            String filesPath = solicitarTexto("Introduzca el path a la carpeta donde encontrar los archivos enviados:",".");
-            List<String> archivos = buscaArchivos(Paths.get(filesPath), "sentfile");
-            Debug.info("Se han encontrado los siguientes archivos:");
-            String def = "";
-            for(String s:archivos){
-                String[] partes = s.split(".sentfile");
-                Debug.info(partes[0].substring(2));
-                def=partes[0].substring(2);
-            }
-            file = solicitarTexto("Introduce el número de archivo que deseas recuperar:",def);
-            //file=filesPath+"/"+file+".sentfile";
-            Debug.info("Se va a solicitar el archivo:  "+file);
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        try {
-            //Solicitud de los datos
-            String keyStorePath = solicitarArchivo("keyStore","./Crypto/Cliente/KeyStoreCliente");
-            String psswd = solicitarPassword("123456");
-            String trustStorePath = solicitarArchivo("trustStore","./Crypto/Cliente/TrustStoreCliente");
-
-            //Creación de socket
-            SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
-
-            boolean resultado = solicitudServidor(socket,keyStorePath,file,trustStorePath,psswd);
-            Debug.info("Peticion enviada");
-            resultado=respuestaServidor(socket,keyStorePath,file,trustStorePath,psswd);
-
-        } catch (Exception e){
-          e.printStackTrace();
-        }
-        return;
-    }
-    private static boolean respuestaServidor(SSLSocket socket,String keyStorePath,String doc, String trustStorePath, String pswd){
-        KeyStore keyStore;
-        try {
-            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
-            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-            
-            keyStore  = KeyStore.getInstance("JCEKS");
-            keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
-            //Verificar el certificado del servidor
-            //Descifrar el Documento
-                String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
-                //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
-                PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
-                if(paqueteRecibido.getArchivo().isCifrado()){
-                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
-                    Debug.info("Se ha desencriptado la clave K");
-                    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding", false, iv);
-                    Debug.info("Se ha desencriptado el documento");
-                }else{
-                    Debug.warn("El documento ya estaba desencriptado");
-                }
-            //Verificar SigRd
-               
-
-                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){ //TODO: Quitar ese or, era para poder continuar desarrollando
-                    Debug.warn("La firma del documento es correcta.");
-                }else{
-                    Debug.warn("La verificación de la firma ha fallado");
-                }
-            //Verificar el hash
-                boolean resu = paqueteRecibido.getArchivo().checkHash(doc+".sentfile");
-                Debug.info("El resultado de la verificacion hash es:  "+resu);
-            //Pregunar si se quiere guardar el original
-        } catch (Exception e) {
-            e.printStackTrace();
-            //TODO: handle exception
-        }
-        return false;
-    }
+    //Metodos de IO
     private static String solicitarArchivo(String tipo,String def){
         String archivo=null;
         try {
@@ -477,25 +458,11 @@ public class  cliente{
         }
         return selection;
     }
-    private static void definirRevocacionOCSP(){
-		// Almacen de claves
-		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
-		System.setProperty("ocsp.enable",                            "true");
-
-	}
-    private static void definirRevocacionOCSPStapling(){
-		// Almacen de claves
-		System.setProperty("jdk.tls.client.enableStatusRequestExtension",   "true");
-		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
-		System.setProperty("ocsp.enable",                            "false");
-
-    }
-    private static void storeHash(String hash,String idDoc){
+    //Metodos de archivos
+    private static void storeHash(byte[] hash,String idDoc){
         try {
-            Debug.info("Tengo el hash"+hash.substring(0,20)+" y el núnero de registro "+idDoc);
-            PrintWriter out = new PrintWriter(idDoc+".sentfile");
-            out.println(hash);
-            out.close();
+            Path path = Paths.get(idDoc+".sentfile");
+            Files.write(path, hash);
         } catch (Exception e) {
             //TODO: handle exception
             e.printStackTrace();
@@ -510,7 +477,7 @@ public class  cliente{
         } else {
         System.out.println("Fallo al eliminar el archivo");
         }
-        }
+    }
     private static List<String> buscaArchivos(Path path, String fileExtension)
         throws IOException {
 
@@ -535,5 +502,19 @@ public class  cliente{
         }
 
         return result;
+    }
+    public static byte[] getHash(byte[] array) {
+        byte[] hash;
+        MessageDigest digest;
+        try{
+            digest = MessageDigest.getInstance("SHA-256");
+            hash = digest.digest(array);
+            return hash;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+		return null;
+
+        //Fuente: https://www.baeldung.com/sha-256-hashing-java
     }
 }

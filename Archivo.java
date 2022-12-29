@@ -12,6 +12,13 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.nio.file.Files;
 
+
+
+//TEST
+import java.nio.charset.Charset;
+import java.util.Random;
+
+
 public class  Archivo implements Serializable  {
 	private int numeroRegistro;
 	private String idPropietario;
@@ -113,39 +120,39 @@ public class  Archivo implements Serializable  {
 		}
 
 	}
-	public void cifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iv) throws Exception {
-		//Hay que cifrar this.documento
-		Cipher cipher = Cipher.getInstance (algoritmo);
-
-		if(iv!=null){
-			cipher.init (Cipher.ENCRYPT_MODE, key, iv);
-		}else{
-			cipher.init (Cipher.ENCRYPT_MODE, key);
+	public void cifrar(SecretKey secretKey,String algoritmo) throws Exception {
+		if(!this.cifrado){
+			//Hay que cifrar this.documento simetrico
+			Cipher cipher = Cipher.getInstance (algoritmo);
+			byte[] initializationVector= new byte[16];
+			//SecureRandom secureRandom= new SecureRandom();
+			//secureRandom.nextBytes(initializationVector);
+			IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
+			cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivParameterSpec);
+			this.documento = cipher.doFinal (this.documento);
+			this.cifrado = true;
 		}
-
-		this.documento = cipher.doFinal (this.documento);
-		this.cifrado = true;
-
-
-
-
 		return;
 	}
-	public void descifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iv) throws Exception {
-		//Hay que descifrar this.documento
-		
-		Cipher cipher = Cipher.getInstance(algoritmo);
+	//opmode - the operation mode of this cipher (this is one of the following: ENCRYPT_MODE, DECRYPT_MODE, WRAP_MODE or UNWRAP_MODE)
+	//   ALGORITMO:  algorithm/mode/padding
 
-		if(iv!=null){
-			cipher.init(Cipher.DECRYPT_MODE, key, iv);
-		}else{
-			
-			cipher.init(Cipher.DECRYPT_MODE, key);
+	//Algoritmos usados:
+		//Asimetrico:
+		// ###################################clave K
+		//Simetrico de archivo: 
+	public void descifrar(SecretKey secretKey,String algoritmo) throws Exception {
+		//Hay que descifrar this.documento simetrico
+		if(this.cifrado){
+			Cipher cipher = Cipher.getInstance(algoritmo);
+			byte[] initializationVector= new byte[16];
+			//SecureRandom secureRandom= new SecureRandom();
+			//secureRandom.nextBytes(initializationVector);
+			IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
+			cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+			this.documento=cipher.doFinal(this.documento);
+			this.cifrado = false;
 		}
-
-		this.documento=cipher.doFinal(this.documento);
-		this.cifrado = false;
-
 		return;
 	}
 
@@ -173,33 +180,6 @@ public class  Archivo implements Serializable  {
 		return resultado;
 	}
 
-	public String getHash() {
-
-		StringBuilder hexString = new StringBuilder(2 * this.documento.length);
-		for (int i = 0; i < this.documento.length; i++) {
-
-			String hex = Integer.toHexString(0xff & this.documento[i]);
-			if(hex.length() == 1) {
-				hexString.append('0');
-			}
-			hexString.append(hex);
-		}
-		return hexString.toString();
-		//Fuente: https://www.baeldung.com/sha-256-hashing-java
-	}
-	public boolean checkHash(String path){
-		try {
-			Path filePath = Path.of(path);
-			Debug.info(Files.readString(filePath).substring(0,20));
-			Debug.info(this.getHash().substring(0,20));
-			return this.getHash().equals(Files.readString(filePath));
-			
-		} catch (Exception e) {
-			//TODO: handle exception
-			e.printStackTrace();
-		}
-		return false;
-	}
 	public void guardaDocumento(String filepath){
 		try {
 			//TODO: Crear el filepath
@@ -213,6 +193,18 @@ public class  Archivo implements Serializable  {
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 			objectOut.writeObject(this);
 			objectOut.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	public void guardaDocumentoDatos(String filepath){
+		try {
+			//TODO: Crear el filepath
+			
+			FileOutputStream fileOut = new FileOutputStream(filepath);
+			
+			fileOut.write(this.documento);
+			fileOut.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
