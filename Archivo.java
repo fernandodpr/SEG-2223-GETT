@@ -131,15 +131,16 @@ public class  Archivo implements Serializable  {
 
 		return;
 	}
-	public void descifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iviDono) throws Exception {
+	public void descifrar(SecretKey key,String algoritmo,boolean cliente,IvParameterSpec iv) throws Exception {
 		//Hay que descifrar this.documento
-		IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+		
 		Cipher cipher = Cipher.getInstance(algoritmo);
 
 		if(iv!=null){
-			cipher.init (Cipher.DECRYPT_MODE, key, iv);
+			cipher.init(Cipher.DECRYPT_MODE, key, iv);
 		}else{
-			cipher.init (Cipher.DECRYPT_MODE, key);
+			
+			cipher.init(Cipher.DECRYPT_MODE, key);
 		}
 
 		this.documento=cipher.doFinal(this.documento);
@@ -157,7 +158,6 @@ public class  Archivo implements Serializable  {
 			verifier.update(this.documento);
 			resultado = verifier.verify(this.firma);
 			Debug.info("Se ha comprobado la firma del cliente de: "+ this.nombreDocumento + " con resultado: "+ resultado);
-
 		}else{
 			ByteArrayOutputStream firmaServidor = new ByteArrayOutputStream( );
 			firmaServidor.write(this.numeroRegistro);
@@ -165,6 +165,7 @@ public class  Archivo implements Serializable  {
 			firmaServidor.write(this.documento);
 			firmaServidor.write(this.firma);
 			verifier.update(firmaServidor.toByteArray());
+			Debug.info("La firma del registrador tiene un tamaño de: "+this.firma_registrador.length);
 			resultado = verifier.verify(this.firma_registrador);
 			Debug.info("Se ha comprobado la firma del registrador de: "+ this.nombreDocumento + " con resultado: "+ resultado);
 		}
@@ -189,6 +190,8 @@ public class  Archivo implements Serializable  {
 	public boolean checkHash(String path){
 		try {
 			Path filePath = Path.of(path);
+			Debug.info(Files.readString(filePath).substring(0,20));
+			Debug.info(this.getHash().substring(0,20));
 			return this.getHash().equals(Files.readString(filePath));
 			
 		} catch (Exception e) {

@@ -35,10 +35,6 @@ public class  Paquete implements Serializable {
 		this.signCertificate = signCertificate;
 	}
 
-
-
-
-
 	public Archivo getArchivo() {
 		return this.archivo;
 	}

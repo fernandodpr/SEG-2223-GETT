@@ -110,54 +110,52 @@ public class  server{
 
 
 
-	try{
+        try{
 
 
-        sslServerSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(port);
-        sslServerSocket.setNeedClientAuth(true);
+            sslServerSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(port);
+            sslServerSocket.setNeedClientAuth(true);
 
-        while(true){
+            while(true){
 
 
-            Socket socket = sslServerSocket.accept();
-            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+                Socket socket = sslServerSocket.accept();
+                ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
 
-            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
+                BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
 
-            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-            
-            
-            Debug.info("Esta es la instruccion recibida:  "+paqueteRecibido.getInstruccion());
+                Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
+                
+                
+                Debug.info("Esta es la instruccion recibida:  "+paqueteRecibido.getInstruccion());
 
-            switch (paqueteRecibido.getInstruccion().substring(0,3)) {
+                switch (paqueteRecibido.getInstruccion().substring(0,3)) {
 
-                case "GET":
-                    Debug.info("La instrucción es de tipo GET.");
-                    getDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject);
-                    break;
-                case "PUT":
-                    Debug.info("La instrucción es de tipo PUT.");
-                    putDocument(paqueteRecibido,ksKeyStore);
-                    responsePutDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject);
-                    break;
-                default:
-                    break;
+                    case "GET":
+                        Debug.info("La instrucción es de tipo GET.");
+                        getDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject);
+                        break;
+                    case "PUT":
+                        Debug.info("La instrucción es de tipo PUT.");
+                        putDocument(paqueteRecibido,ksKeyStore);
+                        responsePutDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject);
+                        break;
+                    default:
+                        break;
+                }
+
+                String inputLine;
+
+                inputLine = socketin.readLine();
             }
 
-            String inputLine;
 
-            inputLine = socketin.readLine();
+        }catch (IOException e) {
+            System.out.println("Class Server died: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
-
-
-    }catch (IOException e) {
-        System.out.println("Class Server died: " + e.getMessage());
-        e.printStackTrace();
-        return;
-    }
-
-
     }
     private static void definirRevocacionOCSPStapling_Metodo1(){
     	//
@@ -175,7 +173,6 @@ public class  server{
             //   Luego volver a firmar el certificado e importarlo al keyStore del server
 
 	}
-
     private static void definirRevocacionOCSPStapling_Metodo2(){
     	//
     	//  Metodo 2: Con URL en el codigo java del server  (aqui)
@@ -268,7 +265,7 @@ public class  server{
             //Se firman id Registro, id Propietario, documento, firmaDoc
                 alias = "server-sign (servidor-sub ca)";
                 PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
-                paqueteRecibido.getArchivo().firmar(signPrivateKey,"SHA256withRSA",false);
+                paqueteRecibido.getArchivo().firmar(signPrivateKey,"SHA512withRSA",false);
                 Debug.info("Se ha firmado id Registro, id Propietario, documento, firmaDoc");
 
             //hacer la copia para cifrar y guardar
@@ -324,7 +321,6 @@ public class  server{
 
             return;
     }
-
     private static void getDocument(Socket socket,Paquete paqueteRecibido, KeyStore keyStore,ObjectOutputStream outputSocketObject ){
 
         try{
@@ -338,11 +334,15 @@ public class  server{
             respuestaPeticion.setArchivo(new Archivo(documentPath));
 
             String alias = "almacenCifrado";
+            IvParameterSpec ivi = new IvParameterSpec(new byte[16]);
             SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
-            respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
+            respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, ivi);//aqui el cifrado es simetrico osea que deberia
             Debug.info("Se ha descifrado el archivo para su envio");
-       
- 
+            
+            alias = "server-sign (servidor-sub ca)";
+            //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
+            java.security.cert.Certificate signCertificate = keyStore.getCertificate(alias);
+            respuestaPeticion.setSignCertificate(signCertificate);
 
         // Crea generador de claves
             KeyGenerator keyGen;
@@ -358,7 +358,6 @@ public class  server{
             respuestaPeticion.setClaveK(claveK);
             respuestaPeticion.cifrarClaveK(paqueteRecibido.getAuthCertificate().getPublicKey(),"RSA");
             Debug.info("Se ha cifrado la clave K.");
-        
         outputSocketObject.writeObject(respuestaPeticion);
         outputSocketObject.flush();
         }catch(Exception e){
@@ -366,7 +365,6 @@ public class  server{
         }
 
     }
-
     private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth){
         //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
 
@@ -416,9 +414,6 @@ public class  server{
 
         return number;
     }
-
-
-
     private static List<String> buscaArchivos(Path path, String filename)
         throws IOException {
 

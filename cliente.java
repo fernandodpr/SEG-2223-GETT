@@ -42,8 +42,6 @@ public class  cliente{
     private static String trustStorePath = raizAlmacenes + "Cliente/TrustStoreCliente";
 
     private static final String[] protocols = new String[]{"TLSv1.3"};
-
-
     public static void main(String[] args) throws Exception {
         boolean salir = false;
         do{
@@ -109,7 +107,6 @@ public class  cliente{
             socket.close();
 
     }
-
     private static SSLSocket handshakeTLS(String host, int port,String keyStorePath, String trustStorePath, String pswd, String IpOCSPResponder) throws Exception{
 
             SSLSocket socket;
@@ -274,12 +271,6 @@ public class  cliente{
         }
         return true;
     }
-
-
-    public static void Registrar_fichero(){
-        System.out.println("Hemos enviado un fichero");
-        return;
-    }
     public static void menu_registro(){
         try {
             //Solicitud de los datos
@@ -308,13 +299,13 @@ public class  cliente{
             //proceso de obtencion de PUT RESPONSE
             //Verificar certificado CertFirmaS
             if(paqueteRecibido.getSignCertificate()==null)Debug.info("No hay firma");
-            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA256withRSA",true)){
+            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",true)){
               Debug.info("Se ha verificado la firma ");
             }
 
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
-            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA256withRSA",false)){
+            if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){
               Debug.info("Se ha verificado la firma ");
             }
 
@@ -382,7 +373,7 @@ public class  cliente{
             keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
             //Verificar el certificado del servidor
             //Descifrar el Documento
-                String alias = "cliente-sign (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
+                String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
                 //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                 PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
                 if(paqueteRecibido.getArchivo().isCifrado()){
@@ -395,13 +386,15 @@ public class  cliente{
                     Debug.warn("El documento ya estaba desencriptado");
                 }
             //Verificar SigRd
+               
+
                 if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){ //TODO: Quitar ese or, era para poder continuar desarrollando
                     Debug.warn("La firma del documento es correcta.");
                 }else{
                     Debug.warn("La verificación de la firma ha fallado");
                 }
             //Verificar el hash
-                boolean resu = paqueteRecibido.getArchivo().checkHash(doc);
+                boolean resu = paqueteRecibido.getArchivo().checkHash(doc+".sentfile");
                 Debug.info("El resultado de la verificacion hash es:  "+resu);
             //Pregunar si se quiere guardar el original
         } catch (Exception e) {
@@ -497,7 +490,6 @@ public class  cliente{
 		System.setProperty("ocsp.enable",                            "false");
 
     }
-
     private static void storeHash(String hash,String idDoc){
         try {
             Debug.info("Tengo el hash"+hash.substring(0,20)+" y el núnero de registro "+idDoc);
@@ -519,7 +511,6 @@ public class  cliente{
         System.out.println("Fallo al eliminar el archivo");
         }
         }
-
     private static List<String> buscaArchivos(Path path, String fileExtension)
         throws IOException {
 
@@ -545,7 +536,4 @@ public class  cliente{
 
         return result;
     }
-
-
-
 }
