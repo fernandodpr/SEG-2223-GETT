@@ -107,11 +107,11 @@ public class  cliente{
             KeyStore keyStore;
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
             paquete.setInstruccion("GET:"+doc);
-            
+
                 SSLSession session = socket.getSession();
                 java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
                 paquete.setAuthCertificate(localcerts[0]);
-            
+
             outputSocketObject.writeObject(paquete);
 
         } catch (Exception e) {
@@ -126,7 +126,7 @@ public class  cliente{
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
             Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-            
+
             keyStore  = KeyStore.getInstance("JCEKS");
             keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
             //Verificar el certificado del servidor
@@ -134,7 +134,7 @@ public class  cliente{
                 String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
                 //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                 PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
-                
+
                 if(paqueteRecibido.getArchivo().isCifrado()){
                     paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
                     Debug.info("Se ha desencriptado la clave K");
@@ -153,9 +153,8 @@ public class  cliente{
                 }
             //Verificar el hash
                 byte[] hashecito = getHash(paqueteRecibido.getArchivo().getDocumento());
-                Debug.taco("AAAAAAAAAAAAA");
                 Debug.info(hashecito);
-                storeHash(hashecito,"PUTON");
+                //storeHash(hashecito,"PUTON");
             //Pregunar si se quiere guardar el original
         } catch (Exception e) {
             e.printStackTrace();
@@ -192,25 +191,25 @@ public class  cliente{
             if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
             //proceso de obtencion de PUT RESPONSE
             //Verificar certificado CertFirmaS
-            if(paqueteRecibido.getSignCertificate()==null)Debug.info("No hay firma");
-           
-  
+
+
+
 
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
-            paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
+            //paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
             if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){
               Debug.info("Se ha verificado la firma ");
             }else{
                 Debug.warn("La verificación de firma ha fallado.");
             }
 
-            
+
             //Hash
-          
+
             storeHash(getHash(paqueteRecibido.getArchivo().getDocumento()),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             //deleteFile(documentPath);
-            
+
             socket.close();
         } catch (Exception e){
           e.printStackTrace();
@@ -259,7 +258,7 @@ public class  cliente{
                     Debug.info(claveK.getEncoded());
 
                     byte[] rawData =claveK.getEncoded();
-                    
+
                     String encodedKey = Base64.getEncoder().encodeToString(rawData);
                     Debug.info("Se ha generado la clave K: " + encodedKey);
 
