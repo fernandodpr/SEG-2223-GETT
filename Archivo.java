@@ -142,7 +142,7 @@ public class  Archivo implements Serializable  {
 			cipher.init (Cipher.DECRYPT_MODE, key);
 		}
 
-		this.documento=cipher.doFinal (this.documento);
+		this.documento=cipher.doFinal(this.documento);
 		this.cifrado = false;
 
 		return;
@@ -185,6 +185,17 @@ public class  Archivo implements Serializable  {
 		}
 		return hexString.toString();
 		//Fuente: https://www.baeldung.com/sha-256-hashing-java
+	}
+	public boolean checkHash(String path){
+		try {
+			Path filePath = Path.of(path);
+			return this.getHash().equals(Files.readString(filePath));
+			
+		} catch (Exception e) {
+			//TODO: handle exception
+			e.printStackTrace();
+		}
+		return false;
 	}
 	public void guardaDocumento(String filepath){
 		try {

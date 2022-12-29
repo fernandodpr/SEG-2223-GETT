@@ -120,24 +120,26 @@ public class  server{
 
 
             Socket socket = sslServerSocket.accept();
+            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
 
             Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-
-
+            
+            
             Debug.info("Esta es la instruccion recibida:  "+paqueteRecibido.getInstruccion());
 
             switch (paqueteRecibido.getInstruccion().substring(0,3)) {
 
                 case "GET":
                     Debug.info("La instrucción es de tipo GET.");
-                    getDocument(socket,paqueteRecibido,ksKeyStore);
+                    getDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject);
                     break;
                 case "PUT":
                     Debug.info("La instrucción es de tipo PUT.");
                     putDocument(paqueteRecibido,ksKeyStore);
-                    responsePutDocument(socket,paqueteRecibido,ksKeyStore);
+                    responsePutDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject);
                     break;
                 default:
                     break;
@@ -289,9 +291,8 @@ public class  server{
 
             return;
     }
-    private static void responsePutDocument(Socket socket, Paquete paqueteRecibido, KeyStore keyStore){
+    private static void responsePutDocument(Socket socket, Paquete paqueteRecibido, KeyStore keyStore,ObjectOutputStream outputSocketObject){
         try{
-                ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
 
                 Debug.info("RESPUESTA");
                 Debug.info("Inicia la respuesta al cliente");
@@ -332,22 +333,22 @@ public class  server{
             return;
     }
 
-    private static void getDocument(Socket socket,Paquete paqueteRecibido, KeyStore keyStore){
+    private static void getDocument(Socket socket,Paquete paqueteRecibido, KeyStore keyStore,ObjectOutputStream outputSocketObject ){
 
         try{
-            ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
+            Debug.info("Hola");
 
-        Paquete respuestaPeticion = new Paquete();
-        int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
-        List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
-        archivos.forEach(x -> Debug.info(x));
-        Path documentPath = Paths.get(archivos.get(0));
-        respuestaPeticion.setArchivo(new Archivo(documentPath));
+            Paquete respuestaPeticion = new Paquete();
+            int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
+            List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
+            archivos.forEach(x -> Debug.info(x));
+            Path documentPath = Paths.get(archivos.get(0));
+            respuestaPeticion.setArchivo(new Archivo(documentPath));
 
-        String alias = "almacenCifrado";
-        SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
-        respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
-        Debug.info("Se ha descifrado el archivo para su envio");
+            String alias = "almacenCifrado";
+            SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
+            respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CBC/PKCS5Padding",false, null);//aqui el cifrado es simetrico osea que deberia
+            Debug.info("Se ha descifrado el archivo para su envio");
        
 
         // Crea generador de claves
@@ -363,6 +364,7 @@ public class  server{
         //Establecemos en el paquete la clave K
             respuestaPeticion.setClaveK(claveK);
             respuestaPeticion.cifrarClaveK(paqueteRecibido.getAuthCertificate().getPublicKey(),"RSA");
+            Debug.info("Se ha cifrado la clave K.");
         
         outputSocketObject.writeObject(respuestaPeticion);
         outputSocketObject.flush();

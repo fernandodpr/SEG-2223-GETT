@@ -261,14 +261,13 @@ public class  cliente{
             KeyStore keyStore;
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
             paquete.setInstruccion("GET:"+doc);
-            //Ciframos la clave K con auth del cliente
+            
                 SSLSession session = socket.getSession();
                 java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
                 paquete.setAuthCertificate(localcerts[0]);
-            Debug.info("Se ha cifrado la clave K.");
+            
             outputSocketObject.writeObject(paquete);
-            outputSocketObject.flush();
-            outputSocketObject.close();
+
         } catch (Exception e) {
             //TODO: handle exception
             e.printStackTrace();
@@ -311,7 +310,7 @@ public class  cliente{
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
 
-
+            
             //Voy a hacer el hash
             //Supongo que aqui la instruccion y el numero del error esta gestionado
             //Es un poco el código que habría que meter en donde se gestione una de las peticiones exitosas
@@ -319,7 +318,7 @@ public class  cliente{
             paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
             storeHash(paqueteRecibido.getArchivo().getHash(),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             //deleteFile(documentPath);
-
+            
             socket.close();
         } catch (Exception e){
           e.printStackTrace();
@@ -356,11 +355,52 @@ public class  cliente{
             SSLSocket socket = handshakeTLS("localhost",8090,keyStorePath,trustStorePath,psswd,"localhost");
 
             boolean resultado = solicitudServidor(socket,keyStorePath,file,trustStorePath,psswd);
+            Debug.info("Peticion enviada");
+            resultado=respuestaServidor(socket,keyStorePath,file,trustStorePath,psswd);
 
         } catch (Exception e){
           e.printStackTrace();
         }
         return;
+    }
+    private static boolean respuestaServidor(SSLSocket socket,String keyStorePath,String doc, String trustStorePath, String pswd){
+        KeyStore keyStore;
+        try {
+            BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
+            Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
+            
+            keyStore  = KeyStore.getInstance("JCEKS");
+            keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
+            //Verificar el certificado del servidor
+            //Descifrar el Documento
+                String alias = "cliente-sign (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
+                //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
+                PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
+                if(paqueteRecibido.getArchivo().isCifrado()){
+                    paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
+                    Debug.info("Se ha desencriptado la clave K");
+                    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding", false, iv);
+                    Debug.info("Se ha desencriptado el documento");
+                }else{
+                    Debug.warn("El documento ya estaba desencriptado");
+                }
+            //Verificar SigRd
+                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){ //TODO: Quitar ese or, era para poder continuar desarrollando
+                    Debug.warn("La firma del documento es correcta.");
+                }else{
+                    Debug.warn("La verificación de la firma ha fallado");
+                }
+            //Verificar el hash
+                boolean resu = paqueteRecibido.getArchivo().checkHash(doc);
+                Debug.info("El resultado de la verificacion hash es:  "+resu);
+            //Pregunar si se quiere guardar el original
+        } catch (Exception e) {
+            e.printStackTrace();
+            //TODO: handle exception
+        }
+        return false;
     }
     private static String solicitarArchivo(String tipo,String def){
         String archivo=null;
