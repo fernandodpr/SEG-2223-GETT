@@ -36,8 +36,8 @@
     import java.nio.file.Paths;
     import java.nio.file.Path;
     import java.nio.file.Files;
-
-    import java.util.Base64;
+import java.util.Arrays;
+import java.util.Base64;
     import java.security.MessageDigest;
 public class  cliente{
     //private static String raizAlmacenes = null;
@@ -64,6 +64,7 @@ public class  cliente{
         }while(!salir);
     }
     ///GET DOCUMENTO
+
     public static void getdocumento(){
         String file = "";
         try{
@@ -152,10 +153,28 @@ public class  cliente{
                 }else{
                     Debug.warn("La verificación de la firma ha fallado");
                 }
+                //TODO: Lo mismo que en la otra verificación hacerlo con Throws
             //Verificar el hash
+                //Get hash del documento recibido
                 byte[] hashecito = getHash(paqueteRecibido.getArchivo().getDocumento());
                 Debug.info(hashecito);
-                //storeHash(hashecito,"PUTON");
+                //Cargar el archivo de HASH guardado en el sistema de archivos
+                byte[] data=null;
+                try {
+                    Path path = Paths.get(doc);
+                    data = Files.readAllBytes(path);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                }
+
+
+                if(Arrays.equals(hashecito,data)){
+                    Debug.info("Los dos hashes coinciden");
+                }else{
+                    //TODO: Larga excepcion
+                    Debug.info("Los dos hashes coinciden"); //Este mensaje tendría que ir en la excepción
+                }
+                storeHash(hashecito,"PUTON");
             //Pregunar si se quiere guardar el original
         } catch (Exception e) {
             e.printStackTrace();
@@ -203,6 +222,7 @@ public class  cliente{
               Debug.info("Se ha verificado la firma ");
             }else{
                 Debug.warn("La verificación de firma ha fallado.");
+                //TODO: Esto creo que se podría gestionar con excepción para poder detener la ejecución del método
             }
 
 
@@ -504,17 +524,19 @@ public class  cliente{
         return result;
     }
     public static byte[] getHash(byte[] array) {
-        byte[] hash;
-        MessageDigest digest;
-        try{
-            digest = MessageDigest.getInstance("SHA-256");
-            hash = digest.digest(array);
-            return hash;
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-		return null;
+        byte [] doc_hash = null;
 
+        try {
+
+            MessageDigest messageDigest = MessageDigest.getInstance ("SHA-256");
+            doc_hash = messageDigest.digest (array);
+
+        } catch (Exception e) {
+
+            e.printStackTrace ();
+        }
+
+        return doc_hash;
         //Fuente: https://www.baeldung.com/sha-256-hashing-java
     }
 }
