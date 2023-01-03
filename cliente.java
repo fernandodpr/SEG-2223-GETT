@@ -8,6 +8,7 @@
     import java.io.ObjectOutputStream;
     import java.io.ObjectInputStream;
     import java.io.PrintWriter;
+    
     import java.security.KeyStore;
 
     import java.net.*;
@@ -35,8 +36,8 @@
     import java.nio.file.Paths;
     import java.nio.file.Path;
     import java.nio.file.Files;
-
-    import java.util.Base64;
+import java.util.Arrays;
+import java.util.Base64;
     import java.security.MessageDigest;
 public class  cliente{
     //private static String raizAlmacenes = null;
@@ -63,6 +64,7 @@ public class  cliente{
         }while(!salir);
     }
     ///GET DOCUMENTO
+
     public static void getdocumento(){
         String file = "";
         try{
@@ -107,11 +109,11 @@ public class  cliente{
             KeyStore keyStore;
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
             paquete.setInstruccion("GET:"+doc);
-            
+
                 SSLSession session = socket.getSession();
                 java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
                 paquete.setAuthCertificate(localcerts[0]);
-            
+
             outputSocketObject.writeObject(paquete);
 
         } catch (Exception e) {
@@ -126,7 +128,7 @@ public class  cliente{
             BufferedReader socketin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ObjectInputStream inputSocketObject = new ObjectInputStream(socket.getInputStream());
             Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
-            
+
             keyStore  = KeyStore.getInstance("JCEKS");
             keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
             //Verificar el certificado del servidor
@@ -134,7 +136,7 @@ public class  cliente{
                 String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
                 //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                 PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
-                
+
                 if(paqueteRecibido.getArchivo().isCifrado()){
                     paqueteRecibido.descifrarClaveK(authPrivateKey,"RSA"); //Se descrifra la clave K
                     Debug.info("Se ha desencriptado la clave K");
@@ -151,11 +153,28 @@ public class  cliente{
                 }else{
                     Debug.warn("La verificación de la firma ha fallado");
                 }
+                //TODO: Lo mismo que en la otra verificación hacerlo con Throws
             //Verificar el hash
+                //Get hash del documento recibido
                 byte[] hashecito = getHash(paqueteRecibido.getArchivo().getDocumento());
-                Debug.taco("AAAAAAAAAAAAA");
                 Debug.info(hashecito);
-                storeHash(hashecito,"PUTON");
+                //Cargar el archivo de HASH guardado en el sistema de archivos
+                byte[] data=null;
+                try {
+                    Path path = Paths.get(doc);
+                    data = Files.readAllBytes(path);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                }
+
+
+                if(Arrays.equals(hashecito,data)){
+                    Debug.info("Los dos hashes coinciden");
+                }else{
+                    //TODO: Larga excepcion
+                    Debug.info("Los dos hashes coinciden"); //Este mensaje tendría que ir en la excepción
+                }
+
             //Pregunar si se quiere guardar el original
         } catch (Exception e) {
             e.printStackTrace();
@@ -192,25 +211,26 @@ public class  cliente{
             if(paqueteRecibido.getInstruccion().substring(0,14).equals("PUT:RESPONSE:1")) Debug.info("Ha habido un error");
             //proceso de obtencion de PUT RESPONSE
             //Verificar certificado CertFirmaS
-            if(paqueteRecibido.getSignCertificate()==null)Debug.info("No hay firma");
-           
-  
+
+
+
 
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
-            paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
+            //paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
             if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){
               Debug.info("Se ha verificado la firma ");
             }else{
                 Debug.warn("La verificación de firma ha fallado.");
+                //TODO: Esto creo que se podría gestionar con excepción para poder detener la ejecución del método
             }
 
-            
+
             //Hash
-          
+
             storeHash(getHash(paqueteRecibido.getArchivo().getDocumento()),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             //deleteFile(documentPath);
-            
+
             socket.close();
         } catch (Exception e){
           e.printStackTrace();
@@ -259,7 +279,7 @@ public class  cliente{
                     Debug.info(claveK.getEncoded());
 
                     byte[] rawData =claveK.getEncoded();
-                    
+
                     String encodedKey = Base64.getEncoder().encodeToString(rawData);
                     Debug.info("Se ha generado la clave K: " + encodedKey);
 
@@ -504,17 +524,19 @@ public class  cliente{
         return result;
     }
     public static byte[] getHash(byte[] array) {
-        byte[] hash;
-        MessageDigest digest;
-        try{
-            digest = MessageDigest.getInstance("SHA-256");
-            hash = digest.digest(array);
-            return hash;
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-		return null;
+        byte [] doc_hash = null;
 
+        try {
+
+            MessageDigest messageDigest = MessageDigest.getInstance ("SHA-256");
+            doc_hash = messageDigest.digest (array);
+
+        } catch (Exception e) {
+
+            e.printStackTrace ();
+        }
+
+        return doc_hash;
         //Fuente: https://www.baeldung.com/sha-256-hashing-java
     }
 }
