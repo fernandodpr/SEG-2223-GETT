@@ -337,7 +337,7 @@ public class  cliente{
             
             
             //OCSP Stapling
-            if(solicitarTexto("Activar comprobación OCSPStapling?(SI/NO)", "NO")=="SI"){
+            if(solicitarTexto("Activar comprobación OCSPStapling?(SI/NO)", "NO").contains("SI")){
                 Debug.info("Se ha activado OCSPStapling");
             }else{
                 Debug.info("No se realizará comprobación mediante OCSPStapling");
