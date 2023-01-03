@@ -174,7 +174,7 @@ public class  cliente{
                     //TODO: Larga excepcion
                     Debug.info("Los dos hashes coinciden"); //Este mensaje tendría que ir en la excepción
                 }
-                storeHash(hashecito,"PUTON");
+
             //Pregunar si se quiere guardar el original
         } catch (Exception e) {
             e.printStackTrace();
