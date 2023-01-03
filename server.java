@@ -47,10 +47,15 @@ import java.util.Base64;
 
 public class  server{
 
+    //TODO: Excepcion de tipo FileNotFoundException cuando un keystore no existe
+
+
+
     //private static String raizAlmacenes = null;
     private static String raizAlmacenes = "./Crypto/";
     private static String keyStorePath   = raizAlmacenes + "Servidor/KeyStoreServidor";
     private static String trustStorePath = raizAlmacenes + "Servidor/TrustStoreServidor";
+    private static String keyStorePathAuth = raizAlmacenes + "Servidor/KeyStoreServidorAuth";
 
     public static void main(String[] args) throws Exception {
             SSLServerSocket sslsocket;
@@ -61,7 +66,7 @@ public class  server{
             char[] passwdEntrada = "123456".toCharArray();
 
             //KEYSTORE
-                System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+                System.setProperty("javax.net.ssl.keyStore", keyStorePathAuth);
                 System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
                 System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 
@@ -76,6 +81,8 @@ public class  server{
             SSLContext sslContext;
             KeyManagerFactory kmf;
             KeyStore ksKeyStore = null;
+            KeyManagerFactory kmfAuth;
+            KeyStore ksKeyStoreAuth = null;
             TrustManagerFactory tmf;
             KeyStore ksTrustStore;
             SSLServerSocketFactory sslServerSocketFactory = null;
@@ -85,12 +92,19 @@ public class  server{
             //duda
             ksKeyStore  = KeyStore.getInstance("JCEKS");
             try {
+                Debug.info("Iniciando el servidor...");
                 BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
                 //Inicializo el KeyStore
                 kmf = KeyManagerFactory.getInstance("SunX509");
                 ksKeyStore  = KeyStore.getInstance("JCEKS");
                 ksKeyStore.load(new FileInputStream(keyStorePath), passwdAlmacen);
                 kmf.init(ksKeyStore,passwdAlmacen);
+
+                //Inicializo el KeyStoreAuth
+                kmfAuth = KeyManagerFactory.getInstance("SunX509");
+                ksKeyStoreAuth  = KeyStore.getInstance("JCEKS");
+                ksKeyStoreAuth.load(new FileInputStream(keyStorePathAuth), passwdAlmacen);
+                kmfAuth.init(ksKeyStoreAuth,passwdAlmacen);
 
                 //Inicializo el trust manager
                 tmf = TrustManagerFactory.getInstance("SunX509");
@@ -100,7 +114,7 @@ public class  server{
 
                 //Configuración del contexto SSL
                 sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
+                sslContext.init(kmfAuth.getKeyManagers(),tmf.getTrustManagers(),null);
 
                 serverSocketFactory = sslContext.getServerSocketFactory();
             } catch (Exception e) {
