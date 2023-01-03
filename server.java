@@ -194,9 +194,9 @@ public class  server{
     	//
 
     		System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
-	  	System.setProperty("jdk.tls.stapling.responderOverride","true");
-		System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.0.50:9080");
-		System.setProperty("jdk.tls.stapling.ignoreExtensions", "true");
+	  	    System.setProperty("jdk.tls.stapling.responderOverride","true");
+		    System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.0.50:9080");
+		    System.setProperty("jdk.tls.stapling.ignoreExtensions", "true");
     }
     private void printsslServerSocketData(SSLServerSocket sslServerSocket){
 

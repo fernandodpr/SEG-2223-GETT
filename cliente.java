@@ -25,20 +25,28 @@
     import java.util.stream.Stream;
     import java.lang.ProcessHandle.Info;
     import java.security.KeyStore;
-    import javax.net.ssl.KeyManagerFactory;
+
+import javax.net.ssl.CertPathTrustManagerParameters;
+import javax.net.ssl.KeyManagerFactory;
     import javax.net.ssl.SSLContext;
     import javax.net.ssl.SSLSession;
     import javax.net.ssl.SSLSocket;
     import javax.net.ssl.SSLSocketFactory;
     import javax.net.ssl.TrustManager;
     import javax.net.ssl.TrustManagerFactory;
-    import java.security.cert.X509Certificate;
+
+import java.security.cert.CertPathBuilder;
+import java.security.cert.PKIXBuilderParameters;
+import java.security.cert.PKIXRevocationChecker;
+import java.security.cert.X509CertSelector;
+import java.security.cert.X509Certificate;
     import java.nio.file.Paths;
     import java.nio.file.Path;
     import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Base64;
-    import java.security.MessageDigest;
+import java.util.EnumSet;
+import java.security.MessageDigest;
 public class  cliente{
     //private static String raizAlmacenes = null;
     private static String raizAlmacenes = "./Crypto/";
@@ -326,7 +334,16 @@ public class  cliente{
                 System.setProperty("javax.net.ssl.trustStore", trustStorePath);
                 System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
                 System.setProperty("javax.net.ssl.trustStorePassword", pswd);
-            //Variables
+            
+            
+            //OCSP Stapling
+            if(solicitarTexto("Activar comprobación OCSPStapling?(SI/NO)", "NO")=="SI"){
+                Debug.info("Se ha activado OCSPStapling");
+            }else{
+                Debug.info("No se realizará comprobación mediante OCSPStapling");
+
+            }
+                //Variables
                 String[] cipherSuitesHabilitadas={"A"};
                 SSLSocketFactory factory = null;
                 SSLContext sslContext;
@@ -346,8 +363,28 @@ public class  cliente{
                 tmf = TrustManagerFactory.getInstance("SunX509");
                 ksTrustStore = KeyStore.getInstance("JCEKS");
                 ksTrustStore.load(new FileInputStream(trustStorePath), pswd.toCharArray());
-                tmf.init(ksTrustStore);
+                
 
+            //OCSP
+            if(solicitarTexto("Activar comprobación OCSP?(SI/NO)", "NO")=="SI"){
+                String ocspResponderURI=solicitarTexto("Introduce la URI del OCSP Responder", IpOCSPResponder);
+                //  1. Crear PKIXRevocationChecker
+                    CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
+                    PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
+                    rc.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
+                    rc.setOcspResponder(new URI(ocspResponderURI));  // Aqui poner la ip y puerto donde se haya lanzado el OCSP Responder
+                //  3. Crear los parametros PKIX y el PKIXRevocationChecker
+                    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ksTrustStore, new X509CertSelector());
+                    pkixParams.addCertPathChecker(rc);
+                    pkixParams.setRevocationEnabled(true); // habilitar la revocacion (por si acaso)                	
+			        tmf.init(new CertPathTrustManagerParameters(pkixParams));  
+
+            }else{
+                Debug.info("No se han proporcionado parámetros para OCSP.");
+                tmf.init(ksTrustStore);
+            }
+
+            
             //Configuración del contexto SSL
                 sslContext = SSLContext.getInstance("TLSv1.3");
                 sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
@@ -392,8 +429,8 @@ public class  cliente{
     }
     private static void definirRevocacionOCSP(){
 		// Almacen de claves
-		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
-		System.setProperty("ocsp.enable",                            "true");
+		System.setProperty("com.sun.net.ssl.checkRevocation","true");
+		System.setProperty("ocsp.enable","true");
 
 	}
     private static void definirRevocacionOCSPStapling(){
