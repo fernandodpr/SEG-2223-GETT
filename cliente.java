@@ -383,7 +383,6 @@ public class  cliente{
                 Debug.info("No se han proporcionado parámetros para OCSP.");
                 tmf.init(ksTrustStore);
             }
-
             
             //Configuración del contexto SSL
                 sslContext = SSLContext.getInstance("TLSv1.3");
