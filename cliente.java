@@ -247,6 +247,10 @@ public class  cliente{
             //deleteFile(documentPath);
 
             socket.close();
+        } catch(javax.net.ssl.SSLHandshakeException e){
+          if(e.getMessage().equals("chiphersuite")){
+            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?");
+          }
         } catch (Exception e){
           e.printStackTrace();
         }
@@ -385,9 +389,9 @@ public class  cliente{
                 //  3. Crear los parametros PKIX y el PKIXRevocationChecker
                     PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ksTrustStore, new X509CertSelector());
                     pkixParams.addCertPathChecker(rc);
-                    pkixParams.setRevocationEnabled(false); // habilitar la revocacion (por si acaso)                	
+                    pkixParams.setRevocationEnabled(false); // habilitar la revocacion (por si acaso)
                     tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                    tmf.init(new CertPathTrustManagerParameters(pkixParams));  
+                    tmf.init(new CertPathTrustManagerParameters(pkixParams));
                     //ocsp.responderCertSubjectName
 
             }else{
@@ -409,7 +413,7 @@ public class  cliente{
                         System.out.println(i+"    "+cipherSuites[i]);
                     }
                 }
-                int ciphnum = -1;
+                int ciphnum = 0;
                 do{
                   System.out.println("############Selecciona un cipher suite: ############");
 
@@ -425,7 +429,6 @@ public class  cliente{
 
                 }while(ciphnum ==-1);
 
-
             //Creación del socket
                 socket = (SSLSocket) factory.createSocket("localhost", 8090);
                 socket.setEnabledCipherSuites(cipherSuitesHabilitadas);
@@ -434,20 +437,26 @@ public class  cliente{
                 System.out.println("\n*************************************************************");
                 System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
                 System.out.println("*************************************************************");
-                socket.startHandshake();
-            //Información de la sesión TLS
-                SSLSession session = socket.getSession();
-                java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
-                java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
-                for(int i=0;i<servercerts.length;i++){
-                    X509Certificate localcert = (X509Certificate)localcerts[i];
-                    System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
+
+                try{
+                  socket.startHandshake();
+                //Información de la sesión TLS
+                  SSLSession session = socket.getSession();
+                  java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
+                  java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+                  for(int i=0;i<servercerts.length;i++){
+                      X509Certificate localcert = (X509Certificate)localcerts[i];
+                      System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
+                  }
+                  for(int i=0;i<servercerts.length;i++){
+                      X509Certificate peercert = (X509Certificate)servercerts[i];
+                      System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
+                  }
+                  return socket;
+                }catch(javax.net.ssl.SSLHandshakeException e){
+                   // Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?");
+                   throw new javax.net.ssl.SSLHandshakeException("chiphersuite");
                 }
-                for(int i=0;i<servercerts.length;i++){
-                    X509Certificate peercert = (X509Certificate)servercerts[i];
-                    System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
-                }
-        return socket;
     }
     private static void definirRevocacionOCSP(){
 		// Almacen de claves
