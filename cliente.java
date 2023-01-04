@@ -8,7 +8,7 @@
     import java.io.ObjectOutputStream;
     import java.io.ObjectInputStream;
     import java.io.PrintWriter;
-    
+
     import java.security.KeyStore;
 
     import java.net.*;
@@ -334,8 +334,8 @@ public class  cliente{
                 System.setProperty("javax.net.ssl.trustStore", trustStorePath);
                 System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
                 System.setProperty("javax.net.ssl.trustStorePassword", pswd);
-            
-            
+
+
             //OCSP Stapling
             if(solicitarTexto("Activar comprobación OCSPStapling?(SI/NO)", "NO").contains("SI")){
                 Debug.info("Se ha activado OCSPStapling");
@@ -363,7 +363,7 @@ public class  cliente{
                 tmf = TrustManagerFactory.getInstance("SunX509");
                 ksTrustStore = KeyStore.getInstance("JCEKS");
                 ksTrustStore.load(new FileInputStream(trustStorePath), pswd.toCharArray());
-                
+
 
             //OCSP
             String comp=solicitarTexto("Activar comprobación OCSP?(SI/NO)", "NO");
@@ -388,7 +388,7 @@ public class  cliente{
                 tmf = TrustManagerFactory.getInstance("SunX509");
                 tmf.init(ksTrustStore);
             }
-            
+
             //Configuración del contexto SSL
                 sslContext = SSLContext.getInstance("TLSv1.3");
                 sslContext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),null);
@@ -402,11 +402,22 @@ public class  cliente{
                         System.out.println(i+"    "+cipherSuites[i]);
                     }
                 }
-                System.out.println("############Selecciona un cipher suite: ############");
-                String ciphnumstring = consola.readLine();
-                int ciphnum = Integer.parseInt(ciphnumstring);
-                cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
-                System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
+                int ciphnum = -1;
+                do{
+                  System.out.println("############Selecciona un cipher suite: ############");
+
+                  String ciphnumstring = consola.readLine();
+                  try{
+                    ciphnum = Integer.parseInt(ciphnumstring);
+                    cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
+                    System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
+                  }catch(Exception e){
+                    Debug.warn("Tiene que ser un numero.");
+                    ciphnum = -1;
+                  }
+
+                }while(ciphnum ==-1);
+
 
             //Creación del socket
                 socket = (SSLSocket) factory.createSocket("localhost", 8090);
