@@ -40,3 +40,24 @@ openssl req -new -out Cliente-Sign.csr     -keyout Cliente-Sign.key
 openssl req -new -out Cliente-Auth.csr     -keyout Cliente-Auth.key
 openssl ca -config cliente-sub-ca.conf -in ../Cliente/Cliente-Sign.csr -out ../Cliente/Cliente-Sign.crt -extensions sign
 openssl ca -config cliente-sub-ca.conf -in ../Cliente/Cliente-Auth.csr -out ../Cliente/Cliente-Auth.crt -extensions auth
+
+
+PARA OCSR
+OCSR de root CA
+    cd /root-ca
+        openssl req -new -newkey rsa:2048 -subj "/C=ES/O=Juan y Fernando SEG/CN=OCSP ROOT RESPONDER" -keyout private/root-ocsp.key -out root-ocsp.csr
+        openssl ca -config root-ca.conf -in root-ocsp.csr -out root-ocsp.crt -extensions ocsp_ext -days 30
+        LEVANTAR EL SERVICIO
+        openssl ocsp -port 8092 -index db/index -rsigner root-ocsp.crt -rkey private/root-ocsp.key -CA root-ca.crt -text
+        openssl ocsp -issuer root-ca.crt -CAfile root-ca.crt -cert root-ocsp.crt -url http://localhost:8092
+    cd /sub-ca server
+        openssl req -new -newkey rsa:2048 -subj "/C=ES/O=Juan y Fernando SEG/CN=OCSP sub-ca-server RESPONDER" -keyout private/sub-ca-server-ocsp.key -out sub-ca-server-ocsp.csr
+        openssl ca -config servidor-sub-ca.conf -in sub-ca-server-ocsp.csr -out sub-ca-server-ocsp.crt -extensions ocsp_ext -days 30
+        LEVANTAR EL SERVICIO
+        openssl ocsp -port 8092 -index db/index -rsigner sub-ca-server-ocsp.crt -rkey private/sub-ca-server-ocsp.key -CA servidor-sub-ca.crt -text
+        openssl ocsp -issuer servidor-sub-ca.crt -CAfile servidor-sub-ca.crt -cert sub-ca-server-ocsp.crt -url http://localhost:8092
+        openssl ocsp -issuer servidor-sub-ca.crt -CAfile ../root-ca/root-ca.crt -cert sub-ca-server-ocsp.crt -url http://localhost:8092
+        openssl ocsp -issuer servidor-sub-ca.crt -CAfile ../root-ca/root-ca.crt -cert ../Servidor/Server-Auth.crt -url http://localhost:8092
+
+
+

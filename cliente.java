@@ -366,8 +366,10 @@ public class  cliente{
                 
 
             //OCSP
-            if(solicitarTexto("Activar comprobación OCSP?(SI/NO)", "NO")=="SI"){
-                String ocspResponderURI=solicitarTexto("Introduce la URI del OCSP Responder", IpOCSPResponder);
+            String comp=solicitarTexto("Activar comprobación OCSP?(SI/NO)", "NO");
+            Debug.info(comp);
+            if(comp.contains("SI")){
+                String ocspResponderURI=solicitarTexto("Introduce la URI del OCSP Responder", "http://"+IpOCSPResponder+":8092");
                 //  1. Crear PKIXRevocationChecker
                     CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
                     PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
@@ -376,11 +378,14 @@ public class  cliente{
                 //  3. Crear los parametros PKIX y el PKIXRevocationChecker
                     PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ksTrustStore, new X509CertSelector());
                     pkixParams.addCertPathChecker(rc);
-                    pkixParams.setRevocationEnabled(true); // habilitar la revocacion (por si acaso)                	
-			        tmf.init(new CertPathTrustManagerParameters(pkixParams));  
+                    pkixParams.setRevocationEnabled(false); // habilitar la revocacion (por si acaso)                	
+                    tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                    tmf.init(new CertPathTrustManagerParameters(pkixParams));  
+                    //ocsp.responderCertSubjectName
 
             }else{
                 Debug.info("No se han proporcionado parámetros para OCSP.");
+                tmf = TrustManagerFactory.getInstance("SunX509");
                 tmf.init(ksTrustStore);
             }
             
@@ -466,7 +471,7 @@ public class  cliente{
         } catch (Exception e) {
           e.printStackTrace();
         }
-        if (data.length()<4){
+        if (data.length()<2){
             return def;
         }else{
             return data ;
