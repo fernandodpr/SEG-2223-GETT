@@ -504,10 +504,10 @@ class Hilo implements Runnable{
 
        inputLine = socketin.readLine();
      }catch(Exception e){
-       Debug.info("[Cliente#"+hilo.getName()+"]"+"[Cliente#"+hilo.getName()+"] Interrumpido.");
+       Debug.info("[Cliente#"+hilo.getName()+"]"+"Interrumpido.");
        e.printStackTrace();
      }
-     Debug.info("[Cliente#"+hilo.getName()+"]"+"[Cliente#"+hilo.getName()+"] terminado.");
+     Debug.info("[Cliente#"+hilo.getName()+"] terminado.");
    }
 
 
