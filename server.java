@@ -32,7 +32,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import java.security.cert.CertificateException;
-import javax.security.cert.X509Certificate;
+import java.security.cert.X509Certificate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -280,6 +280,7 @@ class Hilo implements Runnable{
                String propietarioString = paqueteRecibido.getArchivo().getIdPropietario();
                paqueteRecibido.getArchivo().setIdPropietario(propietarioString);
 
+    
                Debug.info("[Cliente#"+hilo+"]"+"Id propietario:"+paqueteRecibido.getArchivo().getIdPropietario());
            //Se firman id Registro, id Propietario, documento, firmaDoc
                alias = "server-sign (servidor-sub ca)";
@@ -369,8 +370,33 @@ class Hilo implements Runnable{
 
            SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
 
-           respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CFB/PKCS5Padding");//aqui el cifrado es simetrico osea que deberia
-           respuestaPeticion.getArchivo().guardaDocumentoDatos("ServidorCargaArchivo");
+            //COMPROBAR QUE EL CLIENTE PUEDE ACCEDER AL ARCHIVO
+            String propstored= respuestaPeticion.getArchivo().getIdPropietario();
+            Debug.info("[Cliente#"+hilo+"]"+"El archivo solicitado tiene como propietario: "+propstored);
+            
+            SSLSocket socketssl=(SSLSocket)socket;
+            java.security.cert.Certificate[] peercerts = socketssl.getSession().getPeerCertificates();
+            
+            X509Certificate peercert = (X509Certificate)peercerts[0];
+
+            String idSolicitante = (String)peercert.getSubjectDN().getName();
+            Debug.info("[Cliente#"+hilo+"]"+"El cliente tiene como identificador: "+idSolicitante);
+
+
+            if(idSolicitante.equals(propstored)){
+                Debug.info("El cliente cuenta con autorización para cargar el archivo");
+            }else{
+                Debug.warn("El cliente ha intentado acceder a un archivo que no le pertenece. Finalizando conexión");
+                respuestaPeticion.setInstruccion("ERROR 401");
+                outputSocketObject.writeObject(respuestaPeticion);
+                outputSocketObject.flush();
+                throw new Exception("El cliente no tiene autorización para acceder a este archivo.");
+
+            }
+
+            respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CFB/PKCS5Padding");//aqui el cifrado es simetrico osea que deberia
+            respuestaPeticion.getArchivo().guardaDocumentoDatos("ServidorCargaArchivo"); //TODO: Esto hay que quitarlo antes de entregar
+
            Debug.info("[Cliente#"+hilo+"]"+"Se ha descifrado el archivo para su envio");
 
            alias = "server-sign (servidor-sub ca)";
@@ -392,6 +418,7 @@ class Hilo implements Runnable{
            respuestaPeticion.setClaveK(claveK);
            respuestaPeticion.cifrarClaveK(paqueteRecibido.getAuthCertificate().getPublicKey(),"RSA");
            Debug.info("[Cliente#"+hilo+"]"+"Se ha cifrado la clave K.");
+           respuestaPeticion.setInstruccion("200 OK");
        outputSocketObject.writeObject(respuestaPeticion);
        outputSocketObject.flush();
        }catch(Exception e){

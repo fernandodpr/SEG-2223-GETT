@@ -110,6 +110,9 @@ public class  cliente{
         try {
             Paquete paquete = new Paquete();
             KeyStore keyStore;
+
+
+
             ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
             paquete.setInstruccion("GET:"+doc);
 
@@ -117,6 +120,7 @@ public class  cliente{
                 java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
                 paquete.setAuthCertificate(localcerts[0]);
 
+                
             outputSocketObject.writeObject(paquete);
 
         } catch (Exception e) {
@@ -176,6 +180,7 @@ public class  cliente{
                     data = Files.readAllBytes(path);
                 } catch (Exception e) {
                     // TODO: handle exception
+                    Debug.info(e.getMessage());
                     if(e.getMessage().contains("401")){
                         Debug.warn("No tienes permiso para acceder a ese archivo.");
 
