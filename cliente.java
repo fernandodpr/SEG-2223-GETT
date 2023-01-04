@@ -136,6 +136,14 @@ public class  cliente{
             keyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
             //Verificar el certificado del servidor
             //Descifrar el Documento
+
+                if(paqueteRecibido.getInstruccion().contains("ERROR")){
+                    Debug.warn("Se ha producido un error");
+
+
+                    if(paqueteRecibido.getInstruccion().contains("401")) throw new Exception("401");
+
+                }
                 String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
                 //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
                 PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
@@ -168,6 +176,10 @@ public class  cliente{
                     data = Files.readAllBytes(path);
                 } catch (Exception e) {
                     // TODO: handle exception
+                    if(e.getMessage().contains("401")){
+                        Debug.warn("No tienes permiso para acceder a ese archivo.");
+
+                    }
                 }
 
 
