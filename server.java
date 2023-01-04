@@ -252,7 +252,7 @@ class Hilo implements Runnable{
                }
            //Desencriptar el documento
                //Es necesario aceder a los datos del keystore para poder acceder a la privada de auth
-                   String alias = "server-sign (servidor-sub ca)"; //TODO: Hay que cambiar esto!! //server-auth (servidor-sub ca)
+                   String alias = "server-auth (servidor-sub ca)"; //TODO: Hay que cambiar esto!! //server-auth (servidor-sub ca)
                    PrivateKey authPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
 
                if(paqueteRecibido.getArchivo().isCifrado()){
@@ -276,7 +276,8 @@ class Hilo implements Runnable{
 
                }
            //Se crea el número de identificación del documento
-               int identificador =secuenciaNumerica();                paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
+               int identificador =secuenciaNumerica();
+               paqueteRecibido.getArchivo().setNumeroRegistro(identificador);
            // Se identifica el propietario del documento
                String propietarioString = paqueteRecibido.getArchivo().getIdPropietario();
                paqueteRecibido.getArchivo().setIdPropietario(propietarioString);
