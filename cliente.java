@@ -8,9 +8,7 @@
     import java.io.ObjectOutputStream;
     import java.io.ObjectInputStream;
     import java.io.PrintWriter;
-
     import java.security.KeyStore;
-
     import java.net.*;
     import java.io.*;
     import java.security.*;
@@ -20,33 +18,30 @@
     import java.lang.*;
     import java.io.File;
     import java.util.List;
-
     import java.util.stream.Collectors;
     import java.util.stream.Stream;
     import java.lang.ProcessHandle.Info;
     import java.security.KeyStore;
-
-import javax.net.ssl.CertPathTrustManagerParameters;
-import javax.net.ssl.KeyManagerFactory;
+    import javax.net.ssl.CertPathTrustManagerParameters;
+    import javax.net.ssl.KeyManagerFactory;
     import javax.net.ssl.SSLContext;
     import javax.net.ssl.SSLSession;
     import javax.net.ssl.SSLSocket;
     import javax.net.ssl.SSLSocketFactory;
     import javax.net.ssl.TrustManager;
     import javax.net.ssl.TrustManagerFactory;
-
-import java.security.cert.CertPathBuilder;
-import java.security.cert.PKIXBuilderParameters;
-import java.security.cert.PKIXRevocationChecker;
-import java.security.cert.X509CertSelector;
-import java.security.cert.X509Certificate;
+    import java.security.cert.CertPathBuilder;
+    import java.security.cert.PKIXBuilderParameters;
+    import java.security.cert.PKIXRevocationChecker;
+    import java.security.cert.X509CertSelector;
+    import java.security.cert.X509Certificate;
     import java.nio.file.Paths;
     import java.nio.file.Path;
     import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.EnumSet;
-import java.security.MessageDigest;
+    import java.util.Arrays;
+    import java.util.Base64;
+    import java.util.EnumSet;
+    import java.security.MessageDigest;
 public class  cliente{
     //private static String raizAlmacenes = null;
     private static String raizAlmacenes = "./Crypto/";
