@@ -150,6 +150,9 @@ public class  cliente{
 
 
                     if(paqueteRecibido.getInstruccion().contains("401")) throw new Exception("401");
+                    if(paqueteRecibido.getInstruccion().contains("402")) throw new Exception("402");
+                    if(paqueteRecibido.getInstruccion().contains("403")) throw new Exception("403");
+
 
                 }
                 String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
@@ -207,6 +210,10 @@ public class  cliente{
             //TODO: handle exception
             if(e.getMessage().contains("401")){
                 Debug.warn("No tienes permiso para acceder a ese archivo.");
+            }else if(e.getMessage().contains("402")){
+                Debug.warn("No existe el archivo. Finalizando conexión");
+            }else if(e.getMessage().contains("403")){
+              Debug.warn("No se ha especificado ningun archivo. Finalizando conexión");
             }
         }
         return false;

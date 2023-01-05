@@ -356,15 +356,30 @@ class Hilo implements Runnable{
            return;
    }
    private static void getDocument(Socket socket,Paquete paqueteRecibido, KeyStore keyStore,ObjectOutputStream outputSocketObject ,String hilo){
+       Paquete respuestaPeticion = new Paquete();
 
        try{
-
-
-           Paquete respuestaPeticion = new Paquete();
+           if(paqueteRecibido.getInstruccion().substring(4).equals("")){
+             Debug.warn("No se ha especificado ningun archivo. Finalizando conexión");
+             respuestaPeticion.setInstruccion("ERROR 403");
+             outputSocketObject.writeObject(respuestaPeticion);
+             outputSocketObject.flush();
+             throw new Exception("No se ha especificado ningun archivo.");
+           }
            int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
            List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
            archivos.forEach(x -> Debug.info("[Peticion #"+hilo+"]"+x));
+           //if(Paths.get(archivos.get(0))){
+           if(archivos.size() == 0){
+             Debug.warn("No existe el archivo. Finalizando conexión");
+             respuestaPeticion.setInstruccion("ERROR 402");
+             outputSocketObject.writeObject(respuestaPeticion);
+             outputSocketObject.flush();
+             throw new Exception("Se ha pedido un archivo que no existe.");
+           }
            Path documentPath = Paths.get(archivos.get(0));
+
+
            respuestaPeticion.setArchivo(new Archivo(documentPath));
 
 
@@ -426,7 +441,15 @@ class Hilo implements Runnable{
            respuestaPeticion.setInstruccion("200 OK");
        outputSocketObject.writeObject(respuestaPeticion);
        outputSocketObject.flush();
-       }catch(Exception e){
+       /*
+       } catch(java.lang.IndexOutOfBoundsException e){
+           Debug.warn("[Peticion #"+hilo+"]"+" no existe el archivo");
+
+           respuestaPeticion.setInstruccion("ERROR 402");
+           outputSocketObject.writeObject(respuestaPeticion);
+           outputSocketObject.flush();
+           */
+       } catch(Exception e){
          e.printStackTrace();
        }
 

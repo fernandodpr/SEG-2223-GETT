@@ -7,8 +7,33 @@ poner una ciphersuite erronea:
   at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:449)
   at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:427)
   at cliente.handshakeTLS(cliente.java:437)
+  Archivo que no existe (mandar uno)
+  java.nio.file.NoSuchFileException: ./archivofalso
+  	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+  	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+  	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:116)
+  	at java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:219)
+  	at java.base/java.nio.file.Files.newByteChannel(Files.java:371)
+  	at java.base/java.nio.file.Files.newByteChannel(Files.java:422)
+  	at java.base/java.nio.file.Files.readAllBytes(Files.java:3206)
+  	at cliente.putdocumento(cliente.java:219)
+  	at cliente.main(cliente.java:56)
 
 
 
 
 ERRORES DESCUBIERTOS:
+
+pedir un archivo que no existe o no tiene el server:
+java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64)
+	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70)
+	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:248)
+	at java.base/java.util.Objects.checkIndex(Objects.java:372)
+	at java.base/java.util.ArrayList.get(ArrayList.java:459)
+	at Hilo.getDocument(server.java:367)
+	at Hilo.run(server.java:524)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+
+
+fallo de certificado ou que non sexa correcto
