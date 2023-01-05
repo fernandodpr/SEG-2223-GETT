@@ -1,0 +1,99 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 4098 (0x1002)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=ES, O=Juan y Fernando SEG, CN=Cliente-SUB CA
+        Validity
+            Not Before: Jan  4 23:44:46 2023 GMT
+            Not After : Jan  4 23:44:46 2024 GMT
+        Subject: C=ES, ST=PO, O=GETTSEG2022 FdPR PBC JBS, CN=Cliente2-Sign
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:f3:03:14:6f:a9:7f:9b:f9:f7:b8:f0:54:c9:5c:
+                    53:74:68:03:f9:24:54:75:71:83:6e:61:f8:a0:27:
+                    0a:e1:cb:86:0f:55:e9:0f:f6:c3:72:9a:f0:7c:c6:
+                    34:52:49:01:b2:30:31:f7:3e:f2:8e:2d:ef:f9:fb:
+                    04:ce:0a:cc:47:e1:fc:24:98:48:d6:bc:89:df:91:
+                    7a:0b:e0:d7:e5:5e:ae:7e:69:9a:0e:20:9f:7b:97:
+                    f3:5b:c8:04:df:0d:9d:f8:ed:6f:ea:e9:70:cd:89:
+                    8c:fd:23:38:b1:10:ba:f5:bb:2d:20:62:d3:91:c0:
+                    74:84:1e:53:04:01:08:18:22:6b:c6:34:44:c0:03:
+                    fa:cb:bd:fd:3c:89:43:fc:10:66:e7:89:95:bd:59:
+                    9a:ab:92:8e:29:15:14:e7:ca:98:14:c2:77:f4:fc:
+                    0f:4d:93:46:31:17:99:fe:d2:1d:09:e0:49:7f:50:
+                    3c:41:2f:b9:d3:09:9e:3d:20:7e:8b:2a:9b:5b:4b:
+                    cf:da:65:4b:af:27:ba:50:39:23:2b:65:f4:21:cf:
+                    61:6f:52:4d:a2:72:57:fb:1b:27:ec:91:3e:fe:96:
+                    57:d0:b8:df:5d:c6:f8:b7:e0:11:e6:5b:72:fe:3b:
+                    98:bd:39:8a:1d:d3:b9:40:23:9d:38:55:52:72:68:
+                    b2:49
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                93:70:F2:C7:47:61:00:C5:5B:D4:7A:C4:80:94:E1:87:8B:6E:8F:B1
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Key Usage: 
+                Digital Signature
+            X509v3 Subject Key Identifier: 
+                90:D3:16:62:F2:83:4A:50:AB:01:55:88:B3:C2:F3:39:54:10:FA:DB
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        49:82:b8:96:cb:a3:b1:ac:fc:01:35:d9:c0:63:94:bb:47:ce:
+        fb:7d:10:72:a7:76:48:19:50:31:7d:73:0d:c3:03:d5:11:1e:
+        3a:e8:31:ca:ef:0e:43:3c:1e:16:eb:2e:c7:c2:2a:2f:0e:cc:
+        20:04:43:8e:64:1d:ce:fb:7c:c9:de:38:59:e2:20:82:f3:7b:
+        a0:4f:ac:40:2b:0f:62:ae:31:f0:9f:18:16:08:ec:61:02:e5:
+        1a:2e:2e:99:27:bb:a4:71:9e:6c:58:f5:3e:56:91:56:2c:2c:
+        48:29:2b:b4:ed:46:56:4d:05:02:96:b6:91:1f:d3:94:18:f6:
+        43:3e:7e:d4:0e:82:85:8b:98:f9:98:2a:25:60:fb:04:94:89:
+        d4:5c:b2:0c:f6:9d:4d:ca:29:d5:39:9f:11:1b:ad:5c:de:c3:
+        f4:21:f9:57:94:4c:0e:22:40:0d:4a:b4:23:f4:80:cd:14:83:
+        e5:f2:1a:2b:f0:26:ed:2c:66:9c:35:cb:b1:6f:e9:56:d6:ab:
+        60:1e:98:a2:51:61:d8:1f:93:9f:06:c2:fb:27:24:99:34:74:
+        54:7c:76:0a:d3:41:0c:fe:35:85:c6:d3:48:fb:ca:39:01:55:
+        cf:c2:dc:84:9a:c8:ae:ba:2f:56:70:d7:d3:cd:b8:72:24:2e:
+        16:40:17:50:c3:c3:16:ad:15:4f:be:44:12:47:6d:63:82:9a:
+        fd:80:c4:e2:ce:e0:ec:d2:ff:72:9f:fc:c2:98:e8:4a:fb:f8:
+        ed:0f:eb:2b:44:c4:07:60:39:77:f3:7c:20:be:f5:10:e1:83:
+        32:91:fe:1f:89:ea:8e:c0:e1:1d:12:25:b7:10:c1:b3:8c:d0:
+        d4:0e:5c:30:58:73:aa:a0:d9:b2:c1:67:aa:b4:1f:bc:ed:38:
+        60:59:9f:37:0b:e2:37:e5:b1:fa:22:e0:b9:c4:fb:59:36:4c:
+        67:cf:bb:70:dc:fc:93:d3:b0:e9:4e:6a:30:30:9f:49:e2:8c:
+        c0:5d:17:3e:cb:50:47:c7:3f:89:1e:3b:d2:c9:1c:f5:e3:14:
+        d8:6a:85:2a:dc:1b:7c:83:03:50:11:c5:be:ec:58:77:a1:c6:
+        f3:13:03:8c:59:c2:7f:42:64:d7:3f:68:02:8a:ba:35:69:ba:
+        c1:e8:dc:23:81:be:8e:d3:80:d1:8c:f2:85:e4:1f:2f:15:df:
+        f3:d0:4f:13:12:86:75:8d:78:05:dc:f7:e3:68:4c:6d:e4:b8:
+        e5:40:45:48:6c:5f:74:4e:b7:fd:c3:8a:f8:b9:f8:ea:bf:a6:
+        1c:4c:4c:84:23:1d:52:41:ea:9d:50:6a:ab:e8:21:b0:6e:7f:
+        7d:f7:2b:b6:83:2a:b7:8e
+-----BEGIN CERTIFICATE-----
+MIIEbzCCAlegAwIBAgICEAIwDQYJKoZIhvcNAQELBQAwRDELMAkGA1UEBhMCRVMx
+HDAaBgNVBAoME0p1YW4geSBGZXJuYW5kbyBTRUcxFzAVBgNVBAMMDkNsaWVudGUt
+U1VCIENBMB4XDTIzMDEwNDIzNDQ0NloXDTI0MDEwNDIzNDQ0NlowVTELMAkGA1UE
+BhMCRVMxCzAJBgNVBAgMAlBPMSEwHwYDVQQKDBhHRVRUU0VHMjAyMiBGZFBSIFBC
+QyBKQlMxFjAUBgNVBAMMDUNsaWVudGUyLVNpZ24wggEiMA0GCSqGSIb3DQEBAQUA
+A4IBDwAwggEKAoIBAQDzAxRvqX+b+fe48FTJXFN0aAP5JFR1cYNuYfigJwrhy4YP
+VekP9sNymvB8xjRSSQGyMDH3PvKOLe/5+wTOCsxH4fwkmEjWvInfkXoL4NflXq5+
+aZoOIJ97l/NbyATfDZ347W/q6XDNiYz9IzixELr1uy0gYtORwHSEHlMEAQgYImvG
+NETAA/rLvf08iUP8EGbniZW9WZqrko4pFRTnypgUwnf0/A9Nk0YxF5n+0h0J4El/
+UDxBL7nTCZ49IH6LKptbS8/aZUuvJ7pQOSMrZfQhz2FvUk2iclf7GyfskT7+llfQ
+uN9dxvi34BHmW3L+O5i9OYod07lAI504VVJyaLJJAgMBAAGjWjBYMB8GA1UdIwQY
+MBaAFJNw8sdHYQDFW9R6xICU4YeLbo+xMAkGA1UdEwQCMAAwCwYDVR0PBAQDAgeA
+MB0GA1UdDgQWBBSQ0xZi8oNKUKsBVYizwvM5VBD62zANBgkqhkiG9w0BAQsFAAOC
+AgEASYK4lsujsaz8ATXZwGOUu0fO+30Qcqd2SBlQMX1zDcMD1REeOugxyu8OQzwe
+Fusux8IqLw7MIARDjmQdzvt8yd44WeIggvN7oE+sQCsPYq4x8J8YFgjsYQLlGi4u
+mSe7pHGebFj1PlaRViwsSCkrtO1GVk0FApa2kR/TlBj2Qz5+1A6ChYuY+ZgqJWD7
+BJSJ1FyyDPadTcop1TmfERutXN7D9CH5V5RMDiJADUq0I/SAzRSD5fIaK/Am7Sxm
+nDXLsW/pVtarYB6YolFh2B+TnwbC+yckmTR0VHx2CtNBDP41hcbTSPvKOQFVz8Lc
+hJrIrrovVnDX0824ciQuFkAXUMPDFq0VT75EEkdtY4Ka/YDE4s7g7NL/cp/8wpjo
+Svv47Q/rK0TEB2A5d/N8IL71EOGDMpH+H4nqjsDhHRIltxDBs4zQ1A5cMFhzqqDZ
+ssFnqrQfvO04YFmfNwviN+Wx+iLgucT7WTZMZ8+7cNz8k9Ow6U5qMDCfSeKMwF0X
+PstQR8c/iR470skc9eMU2GqFKtwbfIMDUBHFvuxYd6HG8xMDjFnCf0Jk1z9oAoq6
+NWm6wejcI4G+jtOA0YzyheQfLxXf89BPExKGdY14Bdz342hMbeS45UBFSGxfdE63
+/cOK+Ln46r+mHExMhCMdUkHqnVBqq+ghsG5/ffcrtoMqt44=
+-----END CERTIFICATE-----

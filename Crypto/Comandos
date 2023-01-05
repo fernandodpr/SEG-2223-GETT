@@ -1,3 +1,10 @@
+Datos para los certificados a partir de Ahora
+C=ES
+ST=PO
+O=GETTSEG2022 FdPR PBC JBS
+
+
+
 Crea un nuevo key y prepara el CSR PARA EL CA
 openssl req -new -config root-ca2.conf -out root-ca.csr \
 
