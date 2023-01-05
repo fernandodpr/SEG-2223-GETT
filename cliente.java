@@ -101,6 +101,10 @@ public class  cliente{
             Debug.info("Peticion enviada");
             resultado=respuestaServidor(socket,keyStorePath,file,trustStorePath,psswd);
 
+        } catch(javax.net.ssl.SSLHandshakeException e){
+          if(e.getMessage().equals("chiphersuite")){
+            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?");
+          }
         } catch (Exception e){
           e.printStackTrace();
         }
@@ -120,7 +124,7 @@ public class  cliente{
                 java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
                 paquete.setAuthCertificate(localcerts[0]);
 
-                
+
             outputSocketObject.writeObject(paquete);
 
         } catch (Exception e) {
@@ -215,7 +219,7 @@ public class  cliente{
 
             //Confección del documento
             //Hay que revisar que el nombre del archivo no sea demasiado grande se puede hacer con la clase Path
-            Path documentPath = Paths.get(solicitarArchivo("documento","./lorem"));
+            Path documentPath = Paths.get(solicitarArchivo("documento","./lorem"));//TODO: error abrir documento que no existe
             Archivo doc = new Archivo(Files.readAllBytes(documentPath),documentPath.getFileName().toString());
             Debug.info("Se ha creado el archivo");
 
@@ -252,6 +256,8 @@ public class  cliente{
             //deleteFile(documentPath);
 
             socket.close();
+        } catch (java.nio.file.NoSuchFileException e){
+           Debug.warn("Error no existe el archivo.");
         } catch(javax.net.ssl.SSLHandshakeException e){
           if(e.getMessage().equals("chiphersuite")){
             Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?");
@@ -424,7 +430,7 @@ public class  cliente{
 
                   String ciphnumstring = consola.readLine();
                   try{
-                    ciphnum = Integer.parseInt(ciphnumstring);
+                    if(!ciphnumstring.equals(""))ciphnum = Integer.parseInt(ciphnumstring);
                     cipherSuitesHabilitadas[0]=cipherSuites[ciphnum];
                     System.out.println("Has seleccionado:   "+ cipherSuitesHabilitadas[0]);
                   }catch(Exception e){

@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -227,7 +226,7 @@ class Hilo implements Runnable{
    private static void putDocument(Paquete paqueteRecibido, KeyStore keyStore,String hilo){
        try{
 
-           Debug.info("[Cliente#"+hilo+"]"+"Entramos en la secuencia de PUT");
+           Debug.info("[Peticion #"+hilo+"]"+"Entramos en la secuencia de PUT");
 
            //Verificar el certificado certFirmac
                java.security.cert.Certificate signCertificateClient = paqueteRecibido.getSignCertificate();
@@ -238,7 +237,7 @@ class Hilo implements Runnable{
 
                if(verificarCertSign(signCertificateClient,authCertificateClient,hilo)){
 
-                   Debug.info("[Cliente#"+hilo+"]"+"El certificado ha sido validado");
+                   Debug.info("[Peticion #"+hilo+"]"+"El certificado ha sido validado");
                }else{
                    Debug.warn("CERTIFICADO DE FIRMA INCORRECTO");
                    try {
@@ -258,11 +257,11 @@ class Hilo implements Runnable{
                    byte[] rawData = paqueteRecibido.getClaveK().getEncoded();
 
                    String encodedKey = Base64.getEncoder().encodeToString(rawData);
-                   Debug.info("[Cliente#"+hilo+"]"+"Se ha desencriptado la clave K: " + encodedKey);
+                   Debug.info("[Peticion #"+hilo+"]"+"Se ha desencriptado la clave K: " + encodedKey);
 
                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding");
                    paqueteRecibido.getArchivo().guardaDocumentoDatos("Servidor-PutDocument");
-                   Debug.info("[Cliente#"+hilo+"]"+"Se ha desencriptado el documento");
+                   Debug.info("[Peticion #"+hilo+"]"+"Se ha desencriptado el documento");
                }else{
                    Debug.warn("El documento ya estaba desencriptado");
                }
@@ -280,13 +279,13 @@ class Hilo implements Runnable{
                String propietarioString = paqueteRecibido.getArchivo().getIdPropietario();
                paqueteRecibido.getArchivo().setIdPropietario(propietarioString);
 
-    
-               Debug.info("[Cliente#"+hilo+"]"+"Id propietario:"+paqueteRecibido.getArchivo().getIdPropietario());
+
+               Debug.info("[Peticion #"+hilo+"]"+"Id propietario:"+paqueteRecibido.getArchivo().getIdPropietario());
            //Se firman id Registro, id Propietario, documento, firmaDoc
                alias = "server-sign (servidor-sub ca)";
                PrivateKey signPrivateKey = (PrivateKey)keyStore.getKey(alias,"123456".toCharArray());
                paqueteRecibido.getArchivo().firmar(signPrivateKey,"SHA512withRSA",false);
-               Debug.info("[Cliente#"+hilo+"]"+"Se ha firmado id Registro, id Propietario, documento, firmaDoc");
+               Debug.info("[Peticion #"+hilo+"]"+"Se ha firmado id Registro, id Propietario, documento, firmaDoc");
 
 
 
@@ -297,10 +296,10 @@ class Hilo implements Runnable{
                SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
                paqueteRecibido.getArchivo().guardaDocumentoDatos("ParaGuardarAntes");
                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CFB/PKCS5Padding");//aqui el cifrado es simetrico osea que deberia
-               Debug.info("[Cliente#"+hilo+"]"+"Se ha cifrado el archivo para su almacenamiento");
+               Debug.info("[Peticion #"+hilo+"]"+"Se ha cifrado el archivo para su almacenamiento");
            //Se guarda el documento en un fichero con el nombre correspondiente
                paqueteRecibido.getArchivo().guardaDocumento(null);
-               Debug.info("[Cliente#"+hilo+"]"+"Se ha guardado el archivo");
+               Debug.info("[Peticion #"+hilo+"]"+"Se ha guardado el archivo");
 
 
            //Prueba
@@ -322,8 +321,8 @@ class Hilo implements Runnable{
    private static void responsePutDocument(Socket socket, Paquete paqueteRecibido, KeyStore keyStore,ObjectOutputStream outputSocketObject,String hilo){
        try{
 
-               Debug.info("[Cliente#"+hilo+"]"+"RESPUESTA");
-               Debug.info("[Cliente#"+hilo+"]"+"Inicia la respuesta al cliente");
+               Debug.info("[Peticion #"+hilo+"]"+"RESPUESTA");
+               Debug.info("[Peticion #"+hilo+"]"+"Inicia la respuesta al cliente");
 
            // Respuesta al cliente
                Paquete respuesta = new Paquete();
@@ -339,7 +338,7 @@ class Hilo implements Runnable{
            //Enviamos el paquete
                outputSocketObject.writeObject(respuesta);
                outputSocketObject.flush();
-               Debug.info("[Cliente#"+hilo+"]"+"Se ha respondido la operación:   "+"PUT:RESPONSE:"+respuesta.getArchivo().getNombreDocumento());
+               Debug.info("[Peticion #"+hilo+"]"+"Se ha respondido la operación:   "+"PUT:RESPONSE:"+respuesta.getArchivo().getNombreDocumento());
 
 
 
@@ -358,7 +357,7 @@ class Hilo implements Runnable{
            Paquete respuestaPeticion = new Paquete();
            int numSolicitud=Integer.parseInt(paqueteRecibido.getInstruccion().substring(4));
            List<String> archivos = buscaArchivos(Paths.get("."),paqueteRecibido.getInstruccion().substring(4));
-           archivos.forEach(x -> Debug.info("[Cliente#"+hilo+"]"+x));
+           archivos.forEach(x -> Debug.info("[Peticion #"+hilo+"]"+x));
            Path documentPath = Paths.get(archivos.get(0));
            respuestaPeticion.setArchivo(new Archivo(documentPath));
 
@@ -372,15 +371,15 @@ class Hilo implements Runnable{
 
             //COMPROBAR QUE EL CLIENTE PUEDE ACCEDER AL ARCHIVO
             String propstored= respuestaPeticion.getArchivo().getIdPropietario();
-            Debug.info("[Cliente#"+hilo+"]"+"El archivo solicitado tiene como propietario: "+propstored);
-            
+            Debug.info("[Peticion #"+hilo+"]"+"El archivo solicitado tiene como propietario: "+propstored);
+
             SSLSocket socketssl=(SSLSocket)socket;
             java.security.cert.Certificate[] peercerts = socketssl.getSession().getPeerCertificates();
-            
+
             X509Certificate peercert = (X509Certificate)peercerts[0];
 
             String idSolicitante = (String)peercert.getSubjectDN().getName();
-            Debug.info("[Cliente#"+hilo+"]"+"El cliente tiene como identificador: "+idSolicitante);
+            Debug.info("[Peticion #"+hilo+"]"+"El cliente tiene como identificador: "+idSolicitante);
 
 
             if(idSolicitante.equals(propstored)){
@@ -397,7 +396,7 @@ class Hilo implements Runnable{
             respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CFB/PKCS5Padding");//aqui el cifrado es simetrico osea que deberia
             respuestaPeticion.getArchivo().guardaDocumentoDatos("ServidorCargaArchivo"); //TODO: Esto hay que quitarlo antes de entregar
 
-           Debug.info("[Cliente#"+hilo+"]"+"Se ha descifrado el archivo para su envio");
+           Debug.info("[Peticion #"+hilo+"]"+"Se ha descifrado el archivo para su envio");
 
            alias = "server-sign (servidor-sub ca)";
            //alias=solicitarTexto("Introduzca el alias del certificado de firma",alias);
@@ -413,11 +412,11 @@ class Hilo implements Runnable{
        //Se cifra el Archivo (simetrico)
            IvParameterSpec iv = new IvParameterSpec(new byte[16]);
            respuestaPeticion.getArchivo().cifrar(claveK,"AES/CBC/PKCS5Padding");
-           Debug.info("[Cliente#"+hilo+"]"+"Se ha cifrado el archivo.");
+           Debug.info("[Peticion #"+hilo+"]"+"Se ha cifrado el archivo.");
        //Establecemos en el paquete la clave K
            respuestaPeticion.setClaveK(claveK);
            respuestaPeticion.cifrarClaveK(paqueteRecibido.getAuthCertificate().getPublicKey(),"RSA");
-           Debug.info("[Cliente#"+hilo+"]"+"Se ha cifrado la clave K.");
+           Debug.info("[Peticion #"+hilo+"]"+"Se ha cifrado la clave K.");
            respuestaPeticion.setInstruccion("200 OK");
        outputSocketObject.writeObject(respuestaPeticion);
        outputSocketObject.flush();
@@ -499,7 +498,7 @@ class Hilo implements Runnable{
 
    //Runnable
    public void run(){
-     Debug.info("Iniciando peticion #"+hilo.getName());
+     Debug.info("[Peticion #"+hilo.getName()+"] Iniciando");
 
      try{
        ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
@@ -510,16 +509,16 @@ class Hilo implements Runnable{
        Paquete paqueteRecibido = (Paquete)inputSocketObject.readObject();
 
 
-       Debug.info("[Cliente#"+hilo.getName()+"]"+"Esta es la instruccion recibida:  "+paqueteRecibido.getInstruccion());
+       Debug.info("[Peticion #"+hilo.getName()+"]"+"Esta es la instruccion recibida:  "+paqueteRecibido.getInstruccion());
 
        switch (paqueteRecibido.getInstruccion().substring(0,3)) {
 
            case "GET":
-               Debug.info("[Cliente#"+hilo.getName()+"]"+"La instrucción es de tipo GET.");
+               Debug.info("[Peticion #"+hilo.getName()+"]"+"La instrucción es de tipo GET.");
                getDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject,hilo.getName() );
                break;
            case "PUT":
-               Debug.info("[Cliente#"+hilo.getName()+"]"+"La instrucción es de tipo PUT.");
+               Debug.info("[Peticion #"+hilo.getName()+"]"+"La instrucción es de tipo PUT.");
                putDocument(paqueteRecibido,ksKeyStore,hilo.getName());
                responsePutDocument(socket,paqueteRecibido,ksKeyStore,outputSocketObject,hilo.getName());
                break;
@@ -531,10 +530,10 @@ class Hilo implements Runnable{
 
        inputLine = socketin.readLine();
      }catch(Exception e){
-       Debug.info("Peticion #"+hilo.getName()+"interrumpida.");
+       Debug.info("[Peticion #"+hilo.getName()+"] interrumpida.");
        e.printStackTrace();
      }
-     Debug.info("Peticion #"+hilo.getName()+" finalizada.");
+     Debug.info("[Peticion #"+hilo.getName()+"] finalizada.");
    }
 
 
