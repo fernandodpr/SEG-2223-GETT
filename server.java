@@ -65,6 +65,11 @@ public class  server{
             char[] passwdAlmacen = "123456".toCharArray();
             char[] passwdEntrada = "123456".toCharArray();
 
+                if(args.length>=2){
+                    Debug.info("Utilizando los Keystore por parámetro");
+                    keyStorePathAuth=args[0];
+                    keyStorePath=args[1];
+                }
             //KEYSTORE
                 System.setProperty("javax.net.ssl.keyStore", keyStorePathAuth);
                 System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
