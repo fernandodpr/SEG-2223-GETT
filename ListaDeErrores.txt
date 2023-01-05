@@ -1,0 +1,14 @@
+ERRORES SOLUCIONADOS:
+poner una ciphersuite erronea:
+  javax.net.ssl.SSLHandshakeException: No appropriate protocol (protocol is disabled or cipher suites are inappropriate)
+  at java.base/sun.security.ssl.HandshakeContext.<init>(HandshakeContext.java:170)
+  at java.base/sun.security.ssl.ClientHandshakeContext.<init>(ClientHandshakeContext.java:103)
+  at java.base/sun.security.ssl.TransportContext.kickstart(TransportContext.java:222)
+  at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:449)
+  at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:427)
+  at cliente.handshakeTLS(cliente.java:437)
+
+
+
+
+ERRORES DESCUBIERTOS:

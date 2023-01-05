@@ -499,7 +499,7 @@ class Hilo implements Runnable{
 
    //Runnable
    public void run(){
-     Debug.info("[Cliente#"+hilo.getName()+"]"+ "Iniciado.");
+     Debug.info("Iniciando peticion #"+hilo.getName());
 
      try{
        ObjectOutputStream  outputSocketObject = new ObjectOutputStream(socket.getOutputStream());
@@ -531,10 +531,10 @@ class Hilo implements Runnable{
 
        inputLine = socketin.readLine();
      }catch(Exception e){
-       Debug.info("[Cliente#"+hilo.getName()+"]"+"Interrumpido.");
+       Debug.info("Peticion #"+hilo.getName()+"interrumpida.");
        e.printStackTrace();
      }
-     Debug.info("[Cliente#"+hilo.getName()+"] terminado.");
+     Debug.info("Peticion #"+hilo.getName()+" finalizada.");
    }
 
 
