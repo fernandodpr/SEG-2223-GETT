@@ -167,7 +167,7 @@ public class  cliente{
                     Debug.warn("El documento ya estaba desencriptado");
                 }
             //Verificar el certificado de firma del servidor
-            verificarFirma(paqueteRecibido.getSignCertificate());
+            verificarFirma((X509Certificate)paqueteRecibido.getSignCertificate());
 
 
 
@@ -244,7 +244,7 @@ public class  cliente{
 
 
             verificarFirma((X509Certificate)paqueteRecibido.getSignCertificate());
-            
+
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
             //paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
@@ -464,7 +464,7 @@ public class  cliente{
                   SSLSession session = socket.getSession();
                   java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
                   java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
-                 
+
                   for(int i=0;i<localcerts.length;i++){
                       X509Certificate localcert = (X509Certificate)localcerts[i];
                       System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
@@ -492,7 +492,7 @@ public class  cliente{
 		System.setProperty("ocsp.enable",                            "false");
 
     }
-    private statuc void verificarFirma(X509Certificate cert) throws  CertificateExpiredException,CertificateNotYetValidException{
+    private static void verificarFirma(X509Certificate cert) throws java.security.cert.CertificateExpiredException, java.security.cert.CertificateNotYetValidException{
         cert.checkValidity();
         Debug.info("El certificado de firma se ha validado");
 
@@ -500,9 +500,9 @@ public class  cliente{
         String comp=solicitarTexto("¿Activar comprobación OCSP?(SI/NO)", "NO");
         Debug.info(comp);
         if(comp.contains("SI")){
-            
+
         }
-        
+
     }
     //Metodos de IO
     private static String solicitarArchivo(String tipo,String def){
@@ -601,7 +601,7 @@ public class  cliente{
     }
     private static void storeFile(Archivo archivo){
         try {
-            
+
             Path path = Paths.get(solicitarTexto("Introduce la ruta completa para guardar el archivo",String.valueOf(archivo.getNumeroRegistro()))+".final");
             Files.write(path, archivo.getDocumento());
         } catch (Exception e) {
