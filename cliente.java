@@ -254,6 +254,9 @@ public class  cliente{
 
             storeHash(getHash(paqueteRecibido.getArchivo().getDocumento()),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             //deleteFile(documentPath);
+            Debug.warn("Se ha almacenado el archivo con idRegistro: "+paqueteRecibido.getArchivo().getNumeroRegistro());
+
+
 
             socket.close();
         } catch (java.nio.file.NoSuchFileException e){

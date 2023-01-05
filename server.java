@@ -299,7 +299,8 @@ class Hilo implements Runnable{
                Debug.info("[Peticion #"+hilo+"]"+"Se ha cifrado el archivo para su almacenamiento");
            //Se guarda el documento en un fichero con el nombre correspondiente
                paqueteRecibido.getArchivo().guardaDocumento(null);
-               Debug.info("[Peticion #"+hilo+"]"+"Se ha guardado el archivo");
+               Debug.info("[Peticion #"+hilo+"]"+"Se ha guardado el archivo con idRegistro: "+paqueteRecibido.getArchivo().getNumeroRegistro());
+
 
 
            //Prueba
