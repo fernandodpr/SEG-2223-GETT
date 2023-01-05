@@ -181,10 +181,7 @@ public class  cliente{
                 } catch (Exception e) {
                     // TODO: handle exception
                     Debug.info(e.getMessage());
-                    if(e.getMessage().contains("401")){
-                        Debug.warn("No tienes permiso para acceder a ese archivo.");
 
-                    }
                 }
 
 
@@ -199,6 +196,9 @@ public class  cliente{
         } catch (Exception e) {
             e.printStackTrace();
             //TODO: handle exception
+            if(e.getMessage().contains("401")){
+                Debug.warn("No tienes permiso para acceder a ese archivo.");
+            }
         }
         return false;
     }
