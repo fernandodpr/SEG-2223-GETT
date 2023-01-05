@@ -3,7 +3,7 @@ C=ES
 ST=PO
 O=GETTSEG2022 FdPR PBC JBS
 
-
+ClienteSimple-Auth
 
 Crea un nuevo key y prepara el CSR PARA EL CA
 openssl req -new -config root-ca2.conf -out root-ca.csr \
