@@ -238,9 +238,18 @@ class Hilo implements Runnable{
                //IMPORTANTE CAMBIAR ESTO ANTES DE SEGUIR ADELANTE
                //TODO: Cambiar esta parte del código
                Debug.warn("Es necesario cambiar esto en el código.");
-               java.security.cert.Certificate authCertificateClient = paqueteRecibido.getSignCertificate();
+               //java.security.cert.Certificate authCertificateClient = paqueteRecibido.getSignCertificate();
+               java.security.cert.Certificate authCertificateClient = paqueteRecibido.getAuthCertificate();
 
-               if(verificarCertSign(signCertificateClient,authCertificateClient,hilo)){
+
+               try{
+                 verificarCertSign((X509Certificate)signCertificateClient,hilo);
+               } catch(Exception e){
+                 Debug.warn("CERTIFICADO DE FIRMA INCORRECTO");
+               }
+               Debug.info("[Peticion #"+hilo+"]"+"El certificado ha sido validado");
+               /*
+               if(){
 
                    Debug.info("[Peticion #"+hilo+"]"+"El certificado ha sido validado");
                }else{
@@ -251,7 +260,7 @@ class Hilo implements Runnable{
                        //TODO: handle exception
                        e.printStackTrace();
                    }
-               }
+               }*/
            //Desencriptar el documento
                //Es necesario aceder a los datos del keystore para poder acceder a la privada de auth
                    String alias = "server-auth (servidor-sub ca)"; //TODO: Hay que cambiar esto!! //server-auth (servidor-sub ca)
@@ -275,7 +284,12 @@ class Hilo implements Runnable{
                    Debug.warn("La firma del documento es correcta.");
                }else{
                    Debug.warn("La verificación de la firma ha fallado");
-
+                   try {
+                       throw new CertificateException("La verificacion de firma es incorrecta");
+                   } catch (Exception e) {
+                       //TODO: handle exception
+                       e.printStackTrace();
+                   }
                }
            //Se crea el número de identificación del documento
                int identificador =secuenciaNumerica();
@@ -441,20 +455,13 @@ class Hilo implements Runnable{
            respuestaPeticion.setInstruccion("200 OK");
        outputSocketObject.writeObject(respuestaPeticion);
        outputSocketObject.flush();
-       /*
-       } catch(java.lang.IndexOutOfBoundsException e){
-           Debug.warn("[Peticion #"+hilo+"]"+" no existe el archivo");
 
-           respuestaPeticion.setInstruccion("ERROR 402");
-           outputSocketObject.writeObject(respuestaPeticion);
-           outputSocketObject.flush();
-           */
        } catch(Exception e){
          e.printStackTrace();
        }
 
    }
-   private static boolean verificarCertSign(java.security.cert.Certificate firma, java.security.cert.Certificate auth,String hilo){
+   private static void verificarCertSign(X509Certificate cert,String hilo) throws java.security.cert.CertificateExpiredException, java.security.cert.CertificateNotYetValidException{
        //Verificar de alguna forma los certificados. Ver que tengan el mismo subjet
 
        /*X509Certificate certFirma = (X509Certificate)firma;
@@ -462,7 +469,16 @@ class Hilo implements Runnable{
        X509Certificate certAuth = (X509Certificate)auth;
        String subjectAuth = certAuth.getSubjectDN().getName();
        return subjectFirma.contains(subjectAuth);  */
-       return true;
+       cert.checkValidity();
+       Debug.info("El certificado de firma se ha validado");
+
+       /*
+       String comp=solicitarTexto("¿Activar comprobación OCSP?(SI/NO)", "NO");
+       Debug.info(comp);
+       if(comp.contains("SI")){
+
+       }
+       */
    }
    private static int secuenciaNumerica(){
        // Nombre del archivo

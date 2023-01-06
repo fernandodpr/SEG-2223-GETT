@@ -19,21 +19,22 @@ poner una ciphersuite erronea:
   	at cliente.putdocumento(cliente.java:219)
   	at cliente.main(cliente.java:56)
 
+pedir un archivo que no existe o no tiene el server:
+    java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+    	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64)
+    	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70)
+    	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:248)
+    	at java.base/java.util.Objects.checkIndex(Objects.java:372)
+    	at java.base/java.util.ArrayList.get(ArrayList.java:459)
+    	at Hilo.getDocument(server.java:367)
+    	at Hilo.run(server.java:524)
+    	at java.base/java.lang.Thread.run(Thread.java:829)
+
+
 
 
 
 ERRORES DESCUBIERTOS:
-
-pedir un archivo que no existe o no tiene el server:
-java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
-	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64)
-	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70)
-	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:248)
-	at java.base/java.util.Objects.checkIndex(Objects.java:372)
-	at java.base/java.util.ArrayList.get(ArrayList.java:459)
-	at Hilo.getDocument(server.java:367)
-	at Hilo.run(server.java:524)
-	at java.base/java.lang.Thread.run(Thread.java:829)
 
 
 fallo de certificado ou que non sexa correcto
