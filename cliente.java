@@ -407,7 +407,7 @@ public class  cliente{
             String comp=solicitarTexto("Activar comprobación OCSP?(SI/NO)", "NO");
             Debug.info(comp);
             if(comp.contains("SI")){
-                String ocspResponderURI=solicitarTexto("Introduce la URI del OCSP Responder", "http://"+IpOCSPResponder+":8090");
+                String ocspResponderURI=solicitarTexto("Introduce la URI del OCSP Responder", "http://"+IpOCSPResponder+":8092");
                 //  1. Crear PKIXRevocationChecker
                     CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
                     PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
