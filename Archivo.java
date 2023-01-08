@@ -36,7 +36,7 @@ public class  Archivo implements Serializable  {
 	public void setIdPropietario(String idPropietario) {
 		this.idPropietario = idPropietario;
 	}
-;
+
 
 
 	//GETTERS Y SETTERS

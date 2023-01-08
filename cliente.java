@@ -42,6 +42,8 @@
     import java.util.Base64;
     import java.util.EnumSet;
     import java.security.MessageDigest;
+    import java.security.cert.CertificateExpiredException;
+    import java.security.cert.CertificateNotYetValidException;
 public class  cliente{
     //private static String raizAlmacenes = null;
     private static String raizAlmacenes = "./Crypto/";
@@ -102,11 +104,12 @@ public class  cliente{
             resultado=respuestaServidor(socket,keyStorePath,file,trustStorePath,psswd);
 
         } catch(javax.net.ssl.SSLHandshakeException e){
+           
           if(e.getMessage().equals("chiphersuite")){
-            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?");
+            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?"+ e.getMessage());
           }
         } catch (Exception e){
-          e.printStackTrace();
+          
         }
         return;
     }
@@ -150,9 +153,6 @@ public class  cliente{
 
 
                     if(paqueteRecibido.getInstruccion().contains("401")) throw new Exception("401");
-                    if(paqueteRecibido.getInstruccion().contains("402")) throw new Exception("402");
-                    if(paqueteRecibido.getInstruccion().contains("403")) throw new Exception("403");
-
 
                 }
                 String alias = "cliente-auth (cliente-sub ca)"; //TODO: Hay que cambiar esto!!
@@ -176,7 +176,7 @@ public class  cliente{
 
             //Verificar SigRd
                 if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",false)){ //TODO: Quitar ese or, era para poder continuar desarrollando
-                    Debug.warn("La firma del documento es correcta.");
+                    Debug.succes("La firma del documento es correcta.");
                 }else{
                     Debug.warn("La verificación de la firma ha fallado");
                 }
@@ -198,10 +198,10 @@ public class  cliente{
 
 
                 if(Arrays.equals(hashecito,data)){
-                    Debug.info("Los dos hashes coinciden");
+                    Debug.succes("Los dos hashes coinciden");
                 }else{
                     //TODO: Larga excepcion
-                    Debug.info("Los dos hashes coinciden"); //Este mensaje tendría que ir en la excepción
+                    Debug.warn("Los dos hashes no coinciden"); //Este mensaje tendría que ir en la excepción
                 }
                 storeFile(paqueteRecibido.getArchivo());
             //Pregunar si se quiere guardar el original
@@ -210,10 +210,6 @@ public class  cliente{
             //TODO: handle exception
             if(e.getMessage().contains("401")){
                 Debug.warn("No tienes permiso para acceder a ese archivo.");
-            }else if(e.getMessage().contains("402")){
-                Debug.warn("No existe el archivo. Finalizando conexión");
-            }else if(e.getMessage().contains("403")){
-              Debug.warn("No se ha especificado ningun archivo. Finalizando conexión");
             }
         }
         return false;
@@ -251,7 +247,7 @@ public class  cliente{
 
 
             verificarFirma((X509Certificate)paqueteRecibido.getSignCertificate());
-
+            
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
             //paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
@@ -267,7 +263,7 @@ public class  cliente{
 
             storeHash(getHash(paqueteRecibido.getArchivo().getDocumento()),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             //deleteFile(documentPath);
-            Debug.warn("Se ha almacenado el archivo con idRegistro: "+paqueteRecibido.getArchivo().getNumeroRegistro());
+            Debug.succes("Se ha almacenado el archivo con idRegistro: "+paqueteRecibido.getArchivo().getNumeroRegistro());
 
 
 
@@ -276,10 +272,12 @@ public class  cliente{
            Debug.warn("Error no existe el archivo.");
         } catch(javax.net.ssl.SSLHandshakeException e){
           if(e.getMessage().equals("chiphersuite")){
-            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?");
+            
+            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?"+e.getMessage());
+
           }
         } catch (Exception e){
-          e.printStackTrace();
+          
         }
         return;
     }
@@ -377,6 +375,7 @@ public class  cliente{
             //OCSP Stapling
             if(solicitarTexto("Activar comprobación OCSPStapling?(SI/NO)", "NO").contains("SI")){
                 Debug.info("Se ha activado OCSPStapling");
+                definirRevocacionOCSPStapling();
             }else{
                 Debug.info("No se realizará comprobación mediante OCSPStapling");
 
@@ -391,16 +390,26 @@ public class  cliente{
                 KeyStore ksTrustStore;
                 String[] cipherSuites = null;
                 BufferedReader consola = new BufferedReader(new InputStreamReader(System.in));
+
             //Inicializo el KeyStore
+            try{
                 kmf = KeyManagerFactory.getInstance("SunX509");
                 ksKeyStore  = KeyStore.getInstance("JCEKS");
                 ksKeyStore.load(new FileInputStream(keyStorePath), pswd.toCharArray());
                 kmf.init(ksKeyStore,pswd.toCharArray());
-
+            }catch(FileNotFoundException e){
+                Debug.warn("No se encuentra el archivo de Keystore proporcionado 🔐");
+                throw e;
+            }
             //Inicializo el trust manager
+            try{
                 tmf = TrustManagerFactory.getInstance("SunX509");
                 ksTrustStore = KeyStore.getInstance("JCEKS");
                 ksTrustStore.load(new FileInputStream(trustStorePath), pswd.toCharArray());
+            }catch(FileNotFoundException e){
+                Debug.warn("No se encuentra el archivo de Truststore proporcionado 🔐");
+                throw e;
+            }
 
 
             //OCSP
@@ -416,7 +425,7 @@ public class  cliente{
                 //  3. Crear los parametros PKIX y el PKIXRevocationChecker
                     PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ksTrustStore, new X509CertSelector());
                     pkixParams.addCertPathChecker(rc);
-                    pkixParams.setRevocationEnabled(false); // habilitar la revocacion (por si acaso)
+                    pkixParams.setRevocationEnabled(true); // habilitar la revocacion (por si acaso)
                     tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                     tmf.init(new CertPathTrustManagerParameters(pkixParams));
                     //ocsp.responderCertSubjectName
@@ -456,7 +465,9 @@ public class  cliente{
 
                 }while(ciphnum ==-1);
 
-            //Creación del socket
+            
+                try{
+                    //Creación del socket
                 socket = (SSLSocket) factory.createSocket("localhost", 8090);
                 socket.setEnabledCipherSuites(cipherSuitesHabilitadas);
                 socket.setEnabledProtocols(protocols);
@@ -465,26 +476,41 @@ public class  cliente{
                 System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
                 System.out.println("*************************************************************");
 
-                try{
-                  socket.startHandshake();
-                //Información de la sesión TLS
-                  SSLSession session = socket.getSession();
-                  java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
-                  java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+                    socket.startHandshake();
+                    //Información de la sesión TLS
+                    SSLSession session = socket.getSession();
+                    java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
+                    java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+                 
+                    for(int i=0;i<localcerts.length;i++){
+                        X509Certificate localcert = (X509Certificate)localcerts[i];
+                        System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
+                    }
+                    for(int i=0;i<servercerts.length;i++){
+                        X509Certificate peercert = (X509Certificate)servercerts[i];
+                        System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
+                    }
+                    return socket;
+                }catch(Exception e){
+                    
+                    if(e.getMessage().contains("revoked")){
+                        Debug.warn("El certificado ha sido revocado 🏴‍☠️");
+                    }else if(e.getMessage().contains("unknown")){
+                        Debug.warn("El OCSP Responder no conoce el estado del certificado 🤷");
+                    }else if(e.getMessage().contains("Connection refused")){
+                        Debug.warn("No se ha podido realizar la conexion 🔌");
 
-                  for(int i=0;i<localcerts.length;i++){
-                      X509Certificate localcert = (X509Certificate)localcerts[i];
-                      System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
-                  }
-                  for(int i=0;i<servercerts.length;i++){
-                      X509Certificate peercert = (X509Certificate)servercerts[i];
-                      System.out.println("Peer Certificate: "+(i+1)+"   "+peercert.getSubjectDN().getName());
-                  }
-                  return socket;
-                }catch(javax.net.ssl.SSLHandshakeException e){
-                   // Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?");
-                   throw new javax.net.ssl.SSLHandshakeException("chiphersuite");
+                    }else if(false){
+                        //Meter aqui otras excepciones, hay que hacerlo asi porque al tener codigo dentro de ifs si metes las excepciones que generan en este catch te dice que no se producen en el try
+                        //MEter en condiciones else if como arribba
+
+                    }else{
+                        Debug.warn(e.getMessage());
+                    }
+                    throw e;
+                   
                 }
+                
     }
     private static void definirRevocacionOCSP(){
 		// Almacen de claves
@@ -499,17 +525,17 @@ public class  cliente{
 		System.setProperty("ocsp.enable",                            "false");
 
     }
-    private static void verificarFirma(X509Certificate cert) throws java.security.cert.CertificateExpiredException, java.security.cert.CertificateNotYetValidException{
+    private static void verificarFirma(X509Certificate cert) throws  CertificateExpiredException,CertificateNotYetValidException{
         cert.checkValidity();
         Debug.info("El certificado de firma se ha validado");
 
 
-        String comp=solicitarTexto("¿Activar comprobación OCSP?(SI/NO)", "NO");
+        String comp=solicitarTexto("¿Activar comprobación OCSP del servidor de firma?(SI/NO)", "NO");
         Debug.info(comp);
         if(comp.contains("SI")){
-
+            
         }
-
+        
     }
     //Metodos de IO
     private static String solicitarArchivo(String tipo,String def){
@@ -608,7 +634,7 @@ public class  cliente{
     }
     private static void storeFile(Archivo archivo){
         try {
-
+            
             Path path = Paths.get(solicitarTexto("Introduce la ruta completa para guardar el archivo",String.valueOf(archivo.getNumeroRegistro()))+".final");
             Files.write(path, archivo.getDocumento());
         } catch (Exception e) {

@@ -64,11 +64,20 @@ public class  server{
             String[] cipherSuites = null;
             char[] passwdAlmacen = "123456".toCharArray();
             char[] passwdEntrada = "123456".toCharArray();
+            boolean ocspStapling;
 
                 if(args.length>=2){
                     Debug.info("Utilizando los Keystore por parámetro");
                     keyStorePathAuth=args[0];
                     keyStorePath=args[1];
+                    if (args.length>2){
+                        ocspStapling=true;
+                        Debug.info("Se va a utilizar OCSP Stapling.");
+                        System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
+                        System.setProperty("jdk.tls.stapling.responderOverride","true");
+                        System.setProperty("jdk.tls.stapling.responderURI", args[2]);
+                        System.setProperty("jdk.tls.stapling.ignoreExtensions", "true");
+                    }
                 }
             //KEYSTORE
                 System.setProperty("javax.net.ssl.keyStore", keyStorePathAuth);
@@ -197,10 +206,7 @@ class Hilo implements Runnable{
      //  Metodo 2: Con URL en el codigo java del server  (aqui)
      //
 
-       System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
-         System.setProperty("jdk.tls.stapling.responderOverride","true");
-       System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.0.50:9080");
-       System.setProperty("jdk.tls.stapling.ignoreExtensions", "true");
+
    }
    private void printsslServerSocketData(SSLServerSocket sslServerSocket){
 
