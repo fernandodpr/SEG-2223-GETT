@@ -253,7 +253,7 @@ class Hilo implements Runnable{
                } catch(Exception e){
                  Debug.warn("CERTIFICADO DE FIRMA INCORRECTO");
                }
-               Debug.info("[Peticion #"+hilo+"]"+"El certificado ha sido validado");
+               Debug.succes("[Peticion #"+hilo+"]"+"El certificado ha sido validado");
                /*
                if(){
 
@@ -280,16 +280,16 @@ class Hilo implements Runnable{
                    Debug.info("[Peticion #"+hilo+"]"+"Se ha desencriptado la clave K: " + encodedKey);
 
                    paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding");
-                   paqueteRecibido.getArchivo().guardaDocumentoDatos("Servidor-PutDocument");
+                   //paqueteRecibido.getArchivo().guardaDocumentoDatos("Servidor-PutDocument");
                    Debug.info("[Peticion #"+hilo+"]"+"Se ha desencriptado el documento");
                }else{
                    Debug.warn("El documento ya estaba desencriptado");
                }
            //Verificar la firma  //TODO: Estaparte no funciona, hay que arreglarla
                if(paqueteRecibido.getArchivo().verificar(paqueteRecibido.getSignCertificate(),"SHA512withRSA",true)){ //TODO: Quitar ese or, era para poder continuar desarrollando
-                   Debug.warn("La firma del documento es correcta.");
+                   Debug.succes("[Peticion #"+hilo+"]"+"La firma del documento es correcta.");
                }else{
-                   Debug.warn("La verificación de la firma ha fallado");
+                   Debug.warn("[Peticion #"+hilo+"]"+"La verificación de la firma ha fallado");
                    try {
                        throw new CertificateException("La verificacion de firma es incorrecta");
                    } catch (Exception e) {
@@ -319,7 +319,7 @@ class Hilo implements Runnable{
            //Se Cifra de nuevo el archivo para poder guardarlo  //TODO:
                alias = "almacenCifrado";
                SecretKey almacenCifrado = (SecretKey)keyStore.getKey(alias,"123456".toCharArray());
-               paqueteRecibido.getArchivo().guardaDocumentoDatos("ParaGuardarAntes");
+               //paqueteRecibido.getArchivo().guardaDocumentoDatos("ParaGuardarAntes");
                paqueteRecibido.getArchivo().cifrar(almacenCifrado,"AES/CFB/PKCS5Padding");//aqui el cifrado es simetrico osea que deberia
                Debug.info("[Peticion #"+hilo+"]"+"Se ha cifrado el archivo para su almacenamiento");
            //Se guarda el documento en un fichero con el nombre correspondiente
@@ -330,7 +330,7 @@ class Hilo implements Runnable{
 
            //Prueba
                paqueteRecibido.getArchivo().descifrar(almacenCifrado,"AES/CFB/PKCS5Padding");
-               paqueteRecibido.getArchivo().guardaDocumentoDatos("DescifradoPrueba");
+               //paqueteRecibido.getArchivo().guardaDocumentoDatos("DescifradoPrueba");
 
 
 
@@ -435,7 +435,7 @@ class Hilo implements Runnable{
             }
 
             respuestaPeticion.getArchivo().descifrar(almacenCifrado,"AES/CFB/PKCS5Padding");//aqui el cifrado es simetrico osea que deberia
-            respuestaPeticion.getArchivo().guardaDocumentoDatos("ServidorCargaArchivo"); //TODO: Esto hay que quitarlo antes de entregar
+            //respuestaPeticion.getArchivo().guardaDocumentoDatos("ServidorCargaArchivo"); //TODO: Esto hay que quitarlo antes de entregar
 
            Debug.info("[Peticion #"+hilo+"]"+"Se ha descifrado el archivo para su envio");
 
@@ -581,8 +581,12 @@ class Hilo implements Runnable{
 
        inputLine = socketin.readLine();
      }catch(Exception e){
+       if(e.getMessage().contains("Remote host terminated the handshake")){
+         Debug.warn("[Peticion #"+hilo.getName()+"] Error al establecer el Handshake");
+       }
+
        Debug.info("[Peticion #"+hilo.getName()+"] interrumpida.");
-       e.printStackTrace();
+       //e.printStackTrace();
      }
      Debug.info("[Peticion #"+hilo.getName()+"] finalizada.");
    }

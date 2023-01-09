@@ -103,13 +103,11 @@ public class  cliente{
             Debug.info("Peticion enviada");
             resultado=respuestaServidor(socket,keyStorePath,file,trustStorePath,psswd);
 
-        } catch(javax.net.ssl.SSLHandshakeException e){
-           
-          if(e.getMessage().equals("chiphersuite")){
-            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?"+ e.getMessage());
+        } catch(Exception e){
+          if(e.getMessage().contains("Connection refused")){
+              Debug.warn("No se ha podido realizar la conexion 🔌");
+
           }
-        } catch (Exception e){
-          
         }
         return;
     }
@@ -164,7 +162,7 @@ public class  cliente{
                     Debug.info("Se ha desencriptado la clave K");
                     IvParameterSpec iv = new IvParameterSpec(new byte[16]);
                     paqueteRecibido.getArchivo().descifrar(paqueteRecibido.getClaveK(),"AES/CBC/PKCS5Padding");
-                    paqueteRecibido.getArchivo().guardaDocumentoDatos("Cliente-RespuestaServidor");
+                    //paqueteRecibido.getArchivo().guardaDocumentoDatos("Cliente-RespuestaServidor");
                     Debug.info("Se ha desencriptado el documento");
                 }else{
                     Debug.warn("El documento ya estaba desencriptado");
@@ -252,7 +250,7 @@ public class  cliente{
 
 
             verificarFirma((X509Certificate)paqueteRecibido.getSignCertificate());
-            
+
             //Verificar firma registrador(getArchivo.getFirma_registrador) con documento(getArchivo.getDocumento())
             // y firmaDoc(getArchivo.getFirma almacenada ya por el usuario)
             //paqueteRecibido.getArchivo().setDocumento(doc.getDocumento());
@@ -275,14 +273,8 @@ public class  cliente{
             socket.close();
         } catch (java.nio.file.NoSuchFileException e){
            Debug.warn("Error no existe el archivo.");
-        } catch(javax.net.ssl.SSLHandshakeException e){
-          if(e.getMessage().equals("chiphersuite")){
-            
-            Debug.warn("Error al establecer el Handshake ¿Ha introducido un protocolo correcto?"+e.getMessage());
-
-          }
         } catch (Exception e){
-          
+
         }
         return;
     }
@@ -470,7 +462,7 @@ public class  cliente{
 
                 }while(ciphnum ==-1);
 
-            
+
                 try{
                     //Creación del socket
                 socket = (SSLSocket) factory.createSocket("localhost", 8090);
@@ -486,7 +478,7 @@ public class  cliente{
                     SSLSession session = socket.getSession();
                     java.security.cert.Certificate[] servercerts = session.getPeerCertificates();
                     java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
-                 
+
                     for(int i=0;i<localcerts.length;i++){
                         X509Certificate localcert = (X509Certificate)localcerts[i];
                         System.out.println("Local Certificate: "+(i+1)+"   "+localcert.getSubjectDN().getName());
@@ -497,14 +489,15 @@ public class  cliente{
                     }
                     return socket;
                 }catch(Exception e){
-                    
+
                     if(e.getMessage().contains("revoked")){
                         Debug.warn("El certificado ha sido revocado 🏴‍☠️");
                     }else if(e.getMessage().contains("unknown")){
                         Debug.warn("El OCSP Responder no conoce el estado del certificado 🤷");
                     }else if(e.getMessage().contains("Connection refused")){
                         Debug.warn("No se ha podido realizar la conexion 🔌");
-
+                    }else if(e.getMessage().contains("(protocol is disabled or cipher suites are inappropriate)")){
+                        Debug.warn("Error al establecer el Handshake ¿Ha introducido un cipher suites correcto?");
                     }else if(false){
                         //Meter aqui otras excepciones, hay que hacerlo asi porque al tener codigo dentro de ifs si metes las excepciones que generan en este catch te dice que no se producen en el try
                         //MEter en condiciones else if como arribba
@@ -513,9 +506,9 @@ public class  cliente{
                         Debug.warn(e.getMessage());
                     }
                     throw e;
-                   
+
                 }
-                
+
     }
     private static void definirRevocacionOCSP(){
 		// Almacen de claves
@@ -532,7 +525,7 @@ public class  cliente{
     }
     private static void verificarFirma(X509Certificate cert) throws  CertificateExpiredException,CertificateNotYetValidException{
         cert.checkValidity();
-        Debug.info("El certificado de firma se ha validado");       
+        Debug.info("El certificado de firma se ha validado");
     }
     //Metodos de IO
     private static String solicitarArchivo(String tipo,String def){
@@ -617,7 +610,7 @@ public class  cliente{
             String path = (idDoc+".sentfile");
 
             FileOutputStream fileOut = new FileOutputStream(path);
-			
+
 			fileOut.write(hash);
 			fileOut.close();
         } catch (Exception e) {
@@ -637,12 +630,12 @@ public class  cliente{
     }
     private static void storeFile(Archivo archivo){
         try {
-            
+
             String path = (solicitarTexto("Introduce la ruta completa para guardar el archivo",String.valueOf(archivo.getNumeroRegistro()))+".final");
             Debug.info(archivo.getDocumento().length+" Es el tamaño del documento");
-           
+
             FileOutputStream fileOut = new FileOutputStream(path);
-			
+
 			fileOut.write(archivo.getDocumento());
 			fileOut.close();
         } catch (Exception e) {
