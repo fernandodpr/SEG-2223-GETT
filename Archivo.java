@@ -125,6 +125,7 @@ public class  Archivo implements Serializable  {
 			//Hay que cifrar this.documento simetrico
 			Cipher cipher = Cipher.getInstance (algoritmo);
 			byte[] initializationVector= new byte[16];
+			Debug.warn("El tamaño de los datos es "+ this.documento.length);
 			//SecureRandom secureRandom= new SecureRandom();
 			//secureRandom.nextBytes(initializationVector);
 			IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
@@ -192,6 +193,7 @@ public class  Archivo implements Serializable  {
 			FileOutputStream fileOut = new FileOutputStream(filepath);
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 			objectOut.writeObject(this);
+			Debug.warn("El tamaño de los datos es "+ this.documento.length);
 			objectOut.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();

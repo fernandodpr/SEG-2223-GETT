@@ -188,7 +188,8 @@ public class  cliente{
                 //Cargar el archivo de HASH guardado en el sistema de archivos
                 byte[] data=null;
                 try {
-                    Path path = Paths.get(doc);
+                    Debug.info("Se va a leer: " + doc);
+                    Path path = Paths.get(doc+".sentfile");
                     data = Files.readAllBytes(path);
                 } catch (Exception e) {
                     // TODO: handle exception
@@ -196,11 +197,15 @@ public class  cliente{
 
                 }
 
-
+                Debug.info("HASHECITO");
+                Debug.info(hashecito);
+                Debug.info("ARCHIVO");
+                Debug.info(data);
                 if(Arrays.equals(hashecito,data)){
                     Debug.succes("Los dos hashes coinciden");
                 }else{
                     //TODO: Larga excepcion
+                    storeHash(hashecito,(String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro()))+"nocoincide");
                     Debug.warn("Los dos hashes no coinciden"); //Este mensaje tendría que ir en la excepción
                 }
                 storeFile(paqueteRecibido.getArchivo());
@@ -261,7 +266,7 @@ public class  cliente{
 
             //Hash
 
-            storeHash(getHash(paqueteRecibido.getArchivo().getDocumento()),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
+            storeHash(getHash(Files.readAllBytes(documentPath)),String.valueOf(paqueteRecibido.getArchivo().getNumeroRegistro())); //No me queda muy claro como relacionar el id del documento con el hash creo que sería adecuado hacer
             //deleteFile(documentPath);
             Debug.succes("Se ha almacenado el archivo con idRegistro: "+paqueteRecibido.getArchivo().getNumeroRegistro());
 
@@ -607,8 +612,14 @@ public class  cliente{
     //Metodos de archivos
     private static void storeHash(byte[] hash,String idDoc){
         try {
-            Path path = Paths.get(idDoc+".sentfile");
-            Files.write(path, hash);
+
+
+            String path = (idDoc+".sentfile");
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+			
+			fileOut.write(hash);
+			fileOut.close();
         } catch (Exception e) {
             //TODO: handle exception
             e.printStackTrace();
@@ -627,8 +638,13 @@ public class  cliente{
     private static void storeFile(Archivo archivo){
         try {
             
-            Path path = Paths.get(solicitarTexto("Introduce la ruta completa para guardar el archivo",String.valueOf(archivo.getNumeroRegistro()))+".final");
-            Files.write(path, archivo.getDocumento());
+            String path = (solicitarTexto("Introduce la ruta completa para guardar el archivo",String.valueOf(archivo.getNumeroRegistro()))+".final");
+            Debug.info(archivo.getDocumento().length+" Es el tamaño del documento");
+           
+            FileOutputStream fileOut = new FileOutputStream(path);
+			
+			fileOut.write(archivo.getDocumento());
+			fileOut.close();
         } catch (Exception e) {
             //TODO: handle exception
             e.printStackTrace();
@@ -665,12 +681,12 @@ public class  cliente{
     }
     public static byte[] getHash(byte[] array) {
         byte [] doc_hash = null;
-
         try {
-
             MessageDigest messageDigest = MessageDigest.getInstance ("SHA-256");
             doc_hash = messageDigest.digest (array);
-
+            Debug.info("El tamaño del hash es " + doc_hash.length);
+            String string = new String(doc_hash);
+            Debug.info("El hash es: " + string);
         } catch (Exception e) {
 
             e.printStackTrace ();
