@@ -527,15 +527,7 @@ public class  cliente{
     }
     private static void verificarFirma(X509Certificate cert) throws  CertificateExpiredException,CertificateNotYetValidException{
         cert.checkValidity();
-        Debug.info("El certificado de firma se ha validado");
-
-
-        String comp=solicitarTexto("¿Activar comprobación OCSP del servidor de firma?(SI/NO)", "NO");
-        Debug.info(comp);
-        if(comp.contains("SI")){
-            
-        }
-        
+        Debug.info("El certificado de firma se ha validado");       
     }
     //Metodos de IO
     private static String solicitarArchivo(String tipo,String def){

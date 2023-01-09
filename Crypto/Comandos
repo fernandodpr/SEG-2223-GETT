@@ -71,3 +71,5 @@ OCSR de root CA
 Para revocar un certificados
 
 openssl ca -config root-ca.conf -revoke certs/1009.pem -crl_reason keyCompromise
+
+java server ./Crypto/ServerSimple/KeyStoreServidorAuth ./Crypto/ServerSimple/KeyStoreServidor
