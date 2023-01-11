@@ -208,7 +208,13 @@ public class  cliente{
                 }
                 storeFile(paqueteRecibido.getArchivo());
             //Pregunar si se quiere guardar el original
-        } catch (Exception e) {
+        } catch (CertificateExpiredException e) {
+            //e.printStackTrace();
+            Debug.warn("CertificateExpiredException");
+        } catch (CertificateNotYetValidException e) {
+          //e.printStackTrace();
+          Debug.warn("CertificateNotYetValidException");
+        }catch (Exception e) {
             e.printStackTrace();
             //TODO: handle exception
             if(e.getMessage().contains("401")){
@@ -274,7 +280,24 @@ public class  cliente{
         } catch (java.nio.file.NoSuchFileException e){
            Debug.warn("Error no existe el archivo.");
         } catch (Exception e){
-
+          if(e.getMessage().contains("revoked")){
+              Debug.warn("El certificado ha sido revocado 🏴‍☠️");
+          }else if(e.getMessage().contains("unknown")){
+              Debug.warn("El OCSP Responder no conoce el estado del certificado 🤷");
+          }else if(e.getMessage().contains("Connection refused")){
+              Debug.warn("No se ha podido realizar la conexion 🔌");
+          }else if(e.getMessage().contains("(protocol is disabled or cipher suites are inappropriate)")){
+              Debug.warn("Error al establecer el Handshake ¿Ha introducido un cipher suites correcto?");
+          }else if(e.getMessage().contains("Unable to determine revocation status due to network error")){
+              Debug.warn("Error al establecer el Handshake. Problemas con OCSP.");
+          }else if(e.getMessage().contains("Responder's certificate is not authorized to sign OCSP responses")){
+              Debug.warn("Certificado no autorizado para firmar respuestas OCSP.");
+          }else if(false){
+              //Meter aqui otras excepciones, hay que hacerlo asi porque al tener codigo dentro de ifs si metes las excepciones que generan en este catch te dice que no se producen en el try
+              //MEter en condiciones else if como arribba
+          }else{
+              Debug.warn(e.getMessage());
+          }
         }
         return;
     }
@@ -498,10 +521,13 @@ public class  cliente{
                         Debug.warn("No se ha podido realizar la conexion 🔌");
                     }else if(e.getMessage().contains("(protocol is disabled or cipher suites are inappropriate)")){
                         Debug.warn("Error al establecer el Handshake ¿Ha introducido un cipher suites correcto?");
+                    }else if(e.getMessage().contains("Unable to determine revocation status due to network error")){
+                        Debug.warn("Error al establecer el Handshake. Problemas con OCSP.");
+                    }else if(e.getMessage().contains("Responder's certificate is not authorized to sign OCSP responses")){
+                        Debug.warn("Certificado no autorizado para firmar respuestas OCSP.");
                     }else if(false){
                         //Meter aqui otras excepciones, hay que hacerlo asi porque al tener codigo dentro de ifs si metes las excepciones que generan en este catch te dice que no se producen en el try
                         //MEter en condiciones else if como arribba
-
                     }else{
                         Debug.warn(e.getMessage());
                     }

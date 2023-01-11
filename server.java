@@ -176,15 +176,7 @@ class Hilo implements Runnable{
      thisHilo.hilo.start();//inicio de hilo;
      return thisHilo;
    }
-
-
-
-
-
-
       //los metodos del server
-
-
    private static void definirRevocacionOCSPStapling_Metodo1(){
      //
      //  Metodo 1: Con URL en el campo AIA del certificado del servidor
@@ -253,7 +245,6 @@ class Hilo implements Runnable{
                } catch(Exception e){
                  Debug.warn("CERTIFICADO DE FIRMA INCORRECTO");
                }
-               Debug.succes("[Peticion #"+hilo+"]"+"El certificado ha sido validado");
                /*
                if(){
 
@@ -331,12 +322,6 @@ class Hilo implements Runnable{
            //Prueba
                paqueteRecibido.getArchivo().descifrar(almacenCifrado,"AES/CFB/PKCS5Padding");
                //paqueteRecibido.getArchivo().guardaDocumentoDatos("DescifradoPrueba");
-
-
-
-
-
-
 
            }catch (Exception e){
                e.printStackTrace();
@@ -476,7 +461,7 @@ class Hilo implements Runnable{
        String subjectAuth = certAuth.getSubjectDN().getName();
        return subjectFirma.contains(subjectAuth);  */
        cert.checkValidity();
-       Debug.info("El certificado de firma se ha validado");
+       Debug.info("[Peticion #"+hilo+"] El certificado de firma se ha validado");
 
        /*
        String comp=solicitarTexto("¿Activar comprobación OCSP?(SI/NO)", "NO");
